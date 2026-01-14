@@ -20,7 +20,7 @@ pub enum RateLimitTier {
 
 /// API key information
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct ApiKeyInfo {
     /// API key name
     pub name: String,
@@ -35,7 +35,7 @@ pub struct ApiKeyInfo {
 
 /// Rate limit information
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct RateLimitInfo {
     /// Rate limit tier
     pub tier: RateLimitTier,
@@ -55,7 +55,7 @@ pub struct RateLimitInfo {
 
 /// Usage response for API key authentication
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct UsageApiKeyResponse {
     /// API key information
     pub api_key: ApiKeyInfo,
@@ -73,7 +73,7 @@ pub enum AuthenticationMethod {
 
 /// Usage response for OAuth authentication
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct UsageOAuthResponse {
     /// Authentication method
     pub authentication_method: AuthenticationMethod,

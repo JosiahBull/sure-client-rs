@@ -24,7 +24,7 @@ impl fmt::Display for Classification {
 
 /// Basic category information
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct Category {
     /// Unique identifier
     pub id: CategoryId,
@@ -40,7 +40,7 @@ pub struct Category {
 
 /// Parent category reference
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct CategoryParent {
     /// Parent category ID
     pub id: CategoryId,
@@ -50,7 +50,7 @@ pub struct CategoryParent {
 
 /// Detailed category information
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct CategoryDetail {
     /// Unique identifier
     pub id: CategoryId,
@@ -75,7 +75,7 @@ pub struct CategoryDetail {
 
 /// Collection of categories with pagination
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct CategoryCollection {
     /// List of categories
     pub categories: Vec<CategoryDetail>,
@@ -83,7 +83,7 @@ pub struct CategoryCollection {
 
 /// Request to create a new category
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct CreateCategoryRequest {
     /// Category data
     pub category: CreateCategoryData,
@@ -91,7 +91,7 @@ pub struct CreateCategoryRequest {
 
 /// Data for creating a new category
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct CreateCategoryData {
     /// Category name
     pub name: String,
@@ -109,7 +109,7 @@ pub struct CreateCategoryData {
 
 /// Request to update an existing category
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct UpdateCategoryRequest {
     /// Category data
     pub category: UpdateCategoryData,
@@ -117,7 +117,7 @@ pub struct UpdateCategoryRequest {
 
 /// Data for updating a category
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct UpdateCategoryData {
     /// Category name
     #[serde(default, skip_serializing_if = "Option::is_none")]

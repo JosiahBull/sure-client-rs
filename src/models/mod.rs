@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 /// Pagination information for paginated responses
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct Pagination {
     /// Current page number (1-based)
     pub page: u32,
@@ -25,7 +25,7 @@ pub struct Pagination {
 
 /// Generic paginated response wrapper
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct PaginatedResponse<T> {
     /// The items in this page
     #[serde(flatten)]
@@ -36,7 +36,7 @@ pub struct PaginatedResponse<T> {
 
 /// Response for successful deletion operations
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct DeleteResponse {
     /// Confirmation message
     pub message: String,
@@ -44,7 +44,7 @@ pub struct DeleteResponse {
 
 /// Error response from the API
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct ErrorResponse {
     /// Error type/code
     pub error: String,

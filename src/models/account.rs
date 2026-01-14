@@ -84,7 +84,7 @@ impl TryFrom<&str> for AccountKind {
 
 /// Account information
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct Account {
     /// Unique identifier
     pub id: AccountId,
@@ -103,7 +103,7 @@ pub struct Account {
 
 /// Detailed account information
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct AccountDetail {
     /// Unique identifier
     pub id: AccountId,
@@ -140,7 +140,7 @@ pub struct AccountDetail {
 
 /// Collection of accounts
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct AccountCollection {
     /// List of accounts
     pub accounts: Vec<Account>,
@@ -148,7 +148,7 @@ pub struct AccountCollection {
 
 /// Request to create a new account
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct CreateAccountRequest {
     /// Account data
     pub account: CreateAccountData,
@@ -156,7 +156,7 @@ pub struct CreateAccountRequest {
 
 /// Data for creating a new account
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct CreateAccountData {
     /// Account name
     pub name: String,
@@ -188,7 +188,7 @@ pub struct CreateAccountData {
 
 /// Request to update an existing account
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct UpdateAccountRequest {
     /// Account data
     pub account: UpdateAccountData,
@@ -196,7 +196,7 @@ pub struct UpdateAccountRequest {
 
 /// Data for updating an account
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct UpdateAccountData {
     /// Account name
     #[serde(default, skip_serializing_if = "Option::is_none")]

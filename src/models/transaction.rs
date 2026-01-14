@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 /// Account information
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct Account {
     /// Unique identifier
     pub id: AccountId,
@@ -26,7 +26,7 @@ pub struct Account {
 
 /// Category information (basic version for transaction references)
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct Category {
     /// Unique identifier
     pub id: CategoryId,
@@ -42,7 +42,7 @@ pub struct Category {
 
 /// Merchant information
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct Merchant {
     /// Unique identifier
     pub id: MerchantId,
@@ -52,7 +52,7 @@ pub struct Merchant {
 
 /// Tag information
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct Tag {
     /// Unique identifier
     pub id: TagId,
@@ -64,7 +64,7 @@ pub struct Tag {
 
 /// Transfer information (for money transfers between accounts)
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct Transfer {
     /// Unique identifier
     pub id: TransactionId,
@@ -112,7 +112,7 @@ impl std::fmt::Display for TransactionType {
 
 /// Complete transaction information
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct Transaction {
     /// Unique identifier
     pub id: TransactionId,
@@ -152,7 +152,7 @@ pub struct Transaction {
 
 /// Collection of transactions
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct TransactionCollection {
     /// List of transactions
     pub transactions: Vec<Transaction>,
@@ -160,7 +160,7 @@ pub struct TransactionCollection {
 
 /// Request body for creating a transaction
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct CreateTransactionRequest {
     /// Transaction data
     pub transaction: CreateTransactionData,
@@ -168,7 +168,7 @@ pub struct CreateTransactionRequest {
 
 /// Transaction data for creation
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct CreateTransactionData {
     /// Account ID (required)
     pub account_id: AccountId,
@@ -201,7 +201,7 @@ pub struct CreateTransactionData {
 
 /// Request body for updating a transaction
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct UpdateTransactionRequest {
     /// Transaction data
     pub transaction: UpdateTransactionData,
@@ -209,7 +209,7 @@ pub struct UpdateTransactionRequest {
 
 /// Transaction data for updates
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct UpdateTransactionData {
     /// Transaction date
     #[serde(default, skip_serializing_if = "Option::is_none")]

@@ -6,7 +6,7 @@ use super::Pagination;
 
 /// Tool call information
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct ToolCall {
     /// Tool call ID
     pub id: Uuid,
@@ -43,7 +43,7 @@ pub enum MessageRole {
 
 /// Message in a chat
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct Message {
     /// Message ID
     pub id: Uuid,
@@ -80,7 +80,7 @@ pub enum AiResponseStatus {
 
 /// Message response with additional fields
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct MessageResponse {
     /// Message ID
     pub id: Uuid,
@@ -113,7 +113,7 @@ pub struct MessageResponse {
 
 /// Chat resource base information
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct ChatResource {
     /// Chat ID
     pub id: Uuid,
@@ -130,7 +130,7 @@ pub struct ChatResource {
 
 /// Chat summary with message count
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct ChatSummary {
     /// Chat ID
     pub id: Uuid,
@@ -152,7 +152,7 @@ pub struct ChatSummary {
 
 /// Detailed chat information with messages
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct ChatDetail {
     /// Chat ID
     pub id: Uuid,
@@ -174,7 +174,7 @@ pub struct ChatDetail {
 
 /// Collection of chat summaries
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct ChatCollection {
     /// List of chats
     pub chats: Vec<ChatSummary>,
@@ -182,7 +182,7 @@ pub struct ChatCollection {
 
 /// Retry response
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct RetryResponse {
     /// Response message
     pub message: String,
@@ -192,7 +192,7 @@ pub struct RetryResponse {
 
 /// Create chat request
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct CreateChatRequest {
     /// Chat title
     pub title: String,
@@ -206,7 +206,7 @@ pub struct CreateChatRequest {
 
 /// Update chat request
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct UpdateChatRequest {
     /// Updated chat title
     pub title: String,
@@ -214,7 +214,7 @@ pub struct UpdateChatRequest {
 
 /// Create message request
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct CreateMessageRequest {
     /// Message content
     pub content: String,

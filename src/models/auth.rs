@@ -12,7 +12,7 @@ pub enum TokenType {
 
 /// Base authentication token response
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct AuthTokenResponse {
     /// Access token
     pub access_token: String,
@@ -30,7 +30,7 @@ pub struct AuthTokenResponse {
 
 /// User information
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct User {
     /// User ID
     pub id: Uuid,
@@ -44,7 +44,7 @@ pub struct User {
 
 /// Sign up response
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct AuthSignupResponse {
     /// Access token
     pub access_token: String,
@@ -64,7 +64,7 @@ pub struct AuthSignupResponse {
 
 /// Login response
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct AuthLoginResponse {
     /// Access token
     pub access_token: String,
@@ -84,7 +84,7 @@ pub struct AuthLoginResponse {
 
 /// Device information for authentication
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct DeviceInfo {
     /// Device identifier
     pub device_id: String,
@@ -100,7 +100,7 @@ pub struct DeviceInfo {
 
 /// Sign up request
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct SignupRequest {
     /// User information
     pub user: SignupUserData,
@@ -113,7 +113,7 @@ pub struct SignupRequest {
 
 /// User data for sign up
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct SignupUserData {
     /// Email address
     pub email: String,
@@ -127,7 +127,7 @@ pub struct SignupUserData {
 
 /// Login request
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct LoginRequest {
     /// Email address
     pub email: String,
@@ -142,7 +142,7 @@ pub struct LoginRequest {
 
 /// Refresh token request
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct RefreshTokenRequest {
     /// Refresh token
     pub refresh_token: String,
@@ -152,7 +152,7 @@ pub struct RefreshTokenRequest {
 
 /// Device information for refresh request
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct RefreshDeviceInfo {
     /// Device identifier
     pub device_id: String,
