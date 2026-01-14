@@ -126,14 +126,14 @@ impl SureClient {
     /// # Example
     /// ```no_run
     /// use sure_client_rs::{SureClient, BearerToken};
-    /// use sure_client_rs::models::account::{CreateAccountRequest, CreateAccountData};
+    /// use sure_client_rs::models::account::{CreateAccountRequest, CreateAccountData, AccountKind};
     /// use rust_decimal::Decimal;
     ///
     /// # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
     /// let request = CreateAccountRequest {
     ///     account: CreateAccountData {
     ///         name: "Checking Account".to_string(),
-    ///         accountable_type: "Depository".to_string(),
+    ///         kind: AccountKind::Depository,
     ///         balance: Some(Decimal::new(100000, 2)), // $1,000.00
     ///         currency: Some("USD".to_string()),
     ///         subtype: Some("checking".to_string()),

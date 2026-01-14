@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 /// Basic merchant information (used in transactions)
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Merchant {
     /// Unique identifier
     pub id: MerchantId,
@@ -13,6 +14,7 @@ pub struct Merchant {
 
 /// Detailed merchant information
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct MerchantDetail {
     /// Unique identifier
     pub id: MerchantId,
@@ -29,6 +31,7 @@ pub struct MerchantDetail {
 
 /// Collection of merchants with pagination
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct MerchantCollection {
     /// List of merchants
     pub merchants: Vec<MerchantDetail>,
@@ -36,6 +39,7 @@ pub struct MerchantCollection {
 
 /// Request to create a new merchant
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct CreateMerchantRequest {
     /// Merchant data
     pub merchant: CreateMerchantData,
@@ -43,6 +47,7 @@ pub struct CreateMerchantRequest {
 
 /// Data for creating a new merchant
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct CreateMerchantData {
     /// Merchant name
     pub name: String,
@@ -53,6 +58,7 @@ pub struct CreateMerchantData {
 
 /// Request to update an existing merchant
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct UpdateMerchantRequest {
     /// Merchant data
     pub merchant: UpdateMerchantData,
@@ -60,6 +66,7 @@ pub struct UpdateMerchantRequest {
 
 /// Data for updating a merchant
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct UpdateMerchantData {
     /// Merchant name
     #[serde(default, skip_serializing_if = "Option::is_none")]

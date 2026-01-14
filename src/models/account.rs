@@ -84,6 +84,7 @@ impl TryFrom<&str> for AccountKind {
 
 /// Account information
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Account {
     /// Unique identifier
     pub id: AccountId,
@@ -95,13 +96,14 @@ pub struct Account {
     pub currency: String,
     /// Account classification (e.g. "asset", "liability")
     pub classification: String,
-    /// Account kind (e.g. "depository", "investment", "credit_card")
+    /// Account kind
     #[serde(rename = "account_type")]
     pub kind: AccountKind,
 }
 
 /// Detailed account information
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct AccountDetail {
     /// Unique identifier
     pub id: AccountId,
@@ -138,6 +140,7 @@ pub struct AccountDetail {
 
 /// Collection of accounts
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct AccountCollection {
     /// List of accounts
     pub accounts: Vec<Account>,
@@ -145,6 +148,7 @@ pub struct AccountCollection {
 
 /// Request to create a new account
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct CreateAccountRequest {
     /// Account data
     pub account: CreateAccountData,
@@ -152,6 +156,7 @@ pub struct CreateAccountRequest {
 
 /// Data for creating a new account
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct CreateAccountData {
     /// Account name
     pub name: String,
@@ -183,6 +188,7 @@ pub struct CreateAccountData {
 
 /// Request to update an existing account
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct UpdateAccountRequest {
     /// Account data
     pub account: UpdateAccountData,
@@ -190,6 +196,7 @@ pub struct UpdateAccountRequest {
 
 /// Data for updating an account
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct UpdateAccountData {
     /// Account name
     #[serde(default, skip_serializing_if = "Option::is_none")]

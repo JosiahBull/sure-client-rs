@@ -18,6 +18,7 @@ pub enum SyncStatus {
 
 /// Sync response
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SyncResponse {
     /// Sync ID
     pub id: Uuid,
