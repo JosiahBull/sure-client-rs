@@ -2,6 +2,7 @@ use crate::types::AccountId;
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 /// The kind of an account.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -149,7 +150,7 @@ pub struct AccountCollection {
 /// Request to create a new account
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct CreateAccountRequest {
+pub(crate) struct CreateAccountRequest {
     /// Account data
     pub account: CreateAccountData,
 }
@@ -157,11 +158,11 @@ pub struct CreateAccountRequest {
 /// Data for creating a new account
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct CreateAccountData {
+pub(crate) struct CreateAccountData {
     /// Account name
     pub name: String,
     /// Account kind
-    #[serde(rename = "account_type")]
+    #[serde(rename = "accountable_type")]
     pub kind: AccountKind,
     /// Initial account balance
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -177,7 +178,7 @@ pub struct CreateAccountData {
     pub institution_name: Option<String>,
     /// Domain of the financial institution
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub institution_domain: Option<String>,
+    pub institution_domain: Option<Url>,
     /// Additional notes
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub notes: Option<String>,
@@ -189,7 +190,7 @@ pub struct CreateAccountData {
 /// Request to update an existing account
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct UpdateAccountRequest {
+pub(crate) struct UpdateAccountRequest {
     /// Account data
     pub account: UpdateAccountData,
 }
@@ -197,7 +198,7 @@ pub struct UpdateAccountRequest {
 /// Data for updating an account
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct UpdateAccountData {
+pub(crate) struct UpdateAccountData {
     /// Account name
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
@@ -212,7 +213,7 @@ pub struct UpdateAccountData {
     pub institution_name: Option<String>,
     /// Domain of the financial institution
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub institution_domain: Option<String>,
+    pub institution_domain: Option<Url>,
     /// Additional notes
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub notes: Option<String>,

@@ -24,7 +24,7 @@
 //!     let client = SureClient::new(
 //!         reqwest::Client::new(),
 //!         Auth::api_key("your_api_key"),
-//!         "https://api.sure.app".to_string(),
+//!         "http://localhost:3000".to_string().parse().unwrap(),
 //!     );
 //!
 //!     // List all categories
@@ -62,7 +62,7 @@
 //!     let client = SureClient::new(
 //!         reqwest::Client::new(),
 //!         Auth::bearer("your_jwt_token"),
-//!         "https://api.sure.app".to_string(),
+//!         "http://localhost:3000".to_string().parse().unwrap(),
 //!     );
 //!
 //!     let categories = client.get_categories().call().await?;
@@ -85,7 +85,7 @@
 //! let client = SureClient::new(
 //!     reqwest::Client::new(),
 //!     Auth::api_key("your_api_key"),
-//!     "https://api.sure.app".to_string(),
+//!     "http://localhost:3000".to_string().parse().unwrap(),
 //! );
 //! ```
 //!
@@ -96,7 +96,7 @@
 //! let client = SureClient::new(
 //!     reqwest::Client::new(),
 //!     Auth::bearer("your_jwt_token"),
-//!     "https://api.sure.app".to_string(),
+//!     "http://localhost:3000".to_string().parse().unwrap(),
 //! );
 //! ```
 //!
@@ -126,42 +126,28 @@
 //! ## Working with Transactions
 //!
 //! ```no_run
-//! use sure_client_rs::{SureClient, BearerToken, AccountId, TransactionId};
-//! use sure_client_rs::models::transaction::{
-//!     CreateTransactionRequest, CreateTransactionData,
-//!     UpdateTransactionRequest, UpdateTransactionData,
-//!     TransactionType,
-//! };
+//! use sure_client_rs::{SureClient, BearerToken, AccountId};
 //! use chrono::NaiveDate;
 //! use rust_decimal::Decimal;
 //! use uuid::Uuid;
 //!
 //! # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
-//! // Create a transaction
-//! let request = CreateTransactionRequest {
-//!     transaction: CreateTransactionData {
-//!         account_id: AccountId::new(Uuid::new_v4()),
-//!         date: NaiveDate::from_ymd_opt(2024, 1, 15).unwrap(),
-//!         amount: Decimal::new(4250, 2), // $42.50
-//!         name: "Grocery Store".to_string(),
-//!         notes: None,
-//!         currency: Some("USD".to_string()),
-//!         category_id: None,
-//!         merchant_id: None,
-//!         nature: None,
-//!         tag_ids: None,
-//!     },
-//! };
-//! let transaction = client.create_transaction(&request).await?;
+//! // Create a transaction using the builder pattern
+//! let transaction = client.create_transaction()
+//!     .account_id(AccountId::new(Uuid::new_v4()))
+//!     .date(NaiveDate::from_ymd_opt(2024, 1, 15).unwrap())
+//!     .amount(Decimal::new(4250, 2)) // $42.50
+//!     .name("Grocery Store".to_string())
+//!     .currency("USD".to_string())
+//!     .call()
+//!     .await?;
 //!
 //! // Update a transaction
-//! let update = UpdateTransactionRequest {
-//!     transaction: UpdateTransactionData {
-//!         notes: Some("Updated notes".to_string()),
-//!         ..Default::default()
-//!     },
-//! };
-//! let updated = client.update_transaction(&transaction.id, &update).await?;
+//! let updated = client.update_transaction()
+//!     .id(&transaction.id)
+//!     .notes("Updated notes".to_string())
+//!     .call()
+//!     .await?;
 //!
 //! // Delete a transaction
 //! let response = client.delete_transaction(&transaction.id).await?;
@@ -209,7 +195,7 @@
 //! let client = SureClient::new(
 //!     reqwest::Client::new(),
 //!     BearerToken::new("your_api_key"),
-//!     "http://localhost:3000".to_string(),
+//!     "http://localhost:3000".to_string().parse().unwrap(),
 //! );
 //! ```
 
@@ -223,4 +209,6 @@ mod types;
 // Public re-exports
 pub use client::SureClient;
 pub use error::{ApiError, ApiResult};
-pub use types::{AccountId, ApiKey, Auth, BearerToken, CategoryId, MerchantId, TagId, TransactionId};
+pub use types::{
+    AccountId, ApiKey, Auth, BearerToken, CategoryId, MerchantId, TagId, TransactionId,
+};

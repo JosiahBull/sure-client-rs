@@ -5,7 +5,8 @@ use crate::ApiError;
 use crate::error::ApiResult;
 use crate::models::{DeleteResponse, PaginatedResponse};
 use crate::models::merchant::{
-    CreateMerchantRequest, MerchantCollection, MerchantDetail, UpdateMerchantRequest,
+    CreateMerchantData, CreateMerchantRequest, MerchantCollection, MerchantDetail,
+    UpdateMerchantData, UpdateMerchantRequest,
 };
 use crate::types::MerchantId;
 use std::collections::HashMap;
@@ -108,13 +109,15 @@ impl SureClient {
     }
 }
 
+#[bon]
 impl SureClient {
     /// Create a new merchant
     ///
     /// Creates a new merchant with the specified details.
     ///
     /// # Arguments
-    /// * `request` - The merchant creation request containing all required fields
+    /// * `name` - Merchant name (required)
+    /// * `color` - Merchant color (hex code)
     ///
     /// # Returns
     /// The newly created merchant with full details.
@@ -127,42 +130,45 @@ impl SureClient {
     /// # Example
     /// ```no_run
     /// use sure_client_rs::{SureClient, BearerToken};
-    /// use sure_client_rs::models::merchant::{CreateMerchantRequest, CreateMerchantData};
     ///
     /// # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
-    /// let request = CreateMerchantRequest {
-    ///     merchant: CreateMerchantData {
-    ///         name: "Starbucks".to_string(),
-    ///         color: Some("#00704A".to_string()),
-    ///     },
-    /// };
+    /// let merchant = client.create_merchant()
+    ///     .name("Starbucks".to_string())
+    ///     .color("#00704A".to_string())
+    ///     .call()
+    ///     .await?;
     ///
-    /// let merchant = client.create_merchant(&request).await?;
     /// println!("Created merchant: {}", merchant.name);
     /// # Ok(())
     /// # }
     /// ```
+    #[builder]
     pub async fn create_merchant(
         &self,
-        request: &CreateMerchantRequest,
+        name: String,
+        color: Option<String>,
     ) -> ApiResult<MerchantDetail> {
+        let request = CreateMerchantRequest {
+            merchant: CreateMerchantData { name, color },
+        };
+
         self.execute_request(
             Method::POST,
             "/api/v1/merchants",
             None,
-            Some(serde_json::to_string(request)?),
+            Some(serde_json::to_string(&request)?),
         )
         .await
     }
 
     /// Update a merchant
     ///
-    /// Updates an existing merchant with new values. Only fields provided in the
-    /// request will be updated.
+    /// Updates an existing merchant with new values. Only fields provided will be updated.
     ///
     /// # Arguments
     /// * `id` - The merchant ID to update
-    /// * `request` - The merchant update request containing fields to update
+    /// * `name` - Updated merchant name
+    /// * `color` - Updated merchant color (hex code)
     ///
     /// # Returns
     /// The updated merchant.
@@ -176,34 +182,38 @@ impl SureClient {
     /// # Example
     /// ```no_run
     /// use sure_client_rs::{SureClient, BearerToken, MerchantId};
-    /// use sure_client_rs::models::merchant::{UpdateMerchantRequest, UpdateMerchantData};
     /// use uuid::Uuid;
     ///
     /// # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
     /// let merchant_id = MerchantId::new(Uuid::new_v4());
     ///
-    /// let request = UpdateMerchantRequest {
-    ///     merchant: UpdateMerchantData {
-    ///         name: Some("Updated Merchant Name".to_string()),
-    ///         color: Some("#FF0000".to_string()),
-    ///     },
-    /// };
+    /// let merchant = client.update_merchant()
+    ///     .id(&merchant_id)
+    ///     .name("Updated Merchant Name".to_string())
+    ///     .color("#FF0000".to_string())
+    ///     .call()
+    ///     .await?;
     ///
-    /// let merchant = client.update_merchant(&merchant_id, &request).await?;
     /// println!("Updated merchant: {}", merchant.name);
     /// # Ok(())
     /// # }
     /// ```
+    #[builder]
     pub async fn update_merchant(
         &self,
         id: &MerchantId,
-        request: &UpdateMerchantRequest,
+        name: Option<String>,
+        color: Option<String>,
     ) -> ApiResult<MerchantDetail> {
+        let request = UpdateMerchantRequest {
+            merchant: UpdateMerchantData { name, color },
+        };
+
         self.execute_request(
             Method::PATCH,
             &format!("/api/v1/merchants/{}", id),
             None,
-            Some(serde_json::to_string(request)?),
+            Some(serde_json::to_string(&request)?),
         )
         .await
     }

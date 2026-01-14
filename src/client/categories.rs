@@ -3,11 +3,11 @@ use reqwest::Method;
 
 use crate::ApiError;
 use crate::error::ApiResult;
-use crate::models::{DeleteResponse, PaginatedResponse};
 use crate::models::category::{
-    CategoryCollection, CategoryDetail, Classification, CreateCategoryRequest,
-    UpdateCategoryRequest,
+    CategoryCollection, CategoryDetail, Classification, CreateCategoryData, CreateCategoryRequest,
+    UpdateCategoryData, UpdateCategoryRequest,
 };
+use crate::models::{DeleteResponse, PaginatedResponse};
 use crate::types::CategoryId;
 use std::collections::HashMap;
 
@@ -94,6 +94,7 @@ impl SureClient {
     }
 }
 
+#[bon]
 impl SureClient {
     /// Create a new category
     ///
@@ -113,33 +114,45 @@ impl SureClient {
     /// # Example
     /// ```no_run
     /// use sure_client_rs::{SureClient, BearerToken};
-    /// use sure_client_rs::models::category::{CreateCategoryRequest, CreateCategoryData, Classification};
+    /// use sure_client_rs::models::category::Classification;
     ///
     /// # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
-    /// let request = CreateCategoryRequest {
-    ///     category: CreateCategoryData {
-    ///         name: "Groceries".to_string(),
-    ///         classification: Classification::Expense,
-    ///         color: "#FF5733".to_string(),
-    ///         lucide_icon: Some("shopping-cart".to_string()),
-    ///         parent_id: None,
-    ///     },
-    /// };
+    /// let category = client.create_category()
+    ///     .name("Groceries".to_string())
+    ///     .classification(Classification::Expense)
+    ///     .color("#FF5733".to_string())
+    ///     .lucide_icon("shopping-cart".to_string())
+    ///     .call()
+    ///     .await?;
     ///
-    /// let category = client.create_category(&request).await?;
     /// println!("Created category: {}", category.name);
     /// # Ok(())
     /// # }
     /// ```
+    #[builder]
     pub async fn create_category(
         &self,
-        request: &CreateCategoryRequest,
+        name: String,
+        classification: Classification,
+        color: String,
+        lucide_icon: Option<String>,
+        parent_id: Option<CategoryId>,
     ) -> ApiResult<CategoryDetail> {
+        let request = CreateCategoryRequest {
+            category: CreateCategoryData {
+                name,
+                classification,
+                color,
+                lucide_icon,
+                parent_id,
+            },
+        };
+
         self.execute_request(
             Method::POST,
             "/api/v1/categories",
             None,
-            Some(serde_json::to_string(request)?),
+            Some(serde_json::to_string(&request)?),
         )
         .await
     }
@@ -165,35 +178,47 @@ impl SureClient {
     /// # Example
     /// ```no_run
     /// use sure_client_rs::{SureClient, BearerToken, CategoryId};
-    /// use sure_client_rs::models::category::{UpdateCategoryRequest, UpdateCategoryData};
     /// use uuid::Uuid;
     ///
     /// # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
     /// let category_id = CategoryId::new(Uuid::new_v4());
     ///
-    /// let request = UpdateCategoryRequest {
-    ///     category: UpdateCategoryData {
-    ///         name: Some("Updated Category Name".to_string()),
-    ///         color: Some("#00FF00".to_string()),
-    ///         ..Default::default()
-    ///     },
-    /// };
+    /// let category = client.update_category()
+    ///     .id(&category_id)
+    ///     .name("Updated Category Name".to_string())
+    ///     .color("#00FF00".to_string())
+    ///     .call()
+    ///     .await?;
     ///
-    /// let category = client.update_category(&category_id, &request).await?;
     /// println!("Updated category: {}", category.name);
     /// # Ok(())
     /// # }
     /// ```
+    #[builder]
     pub async fn update_category(
         &self,
         id: &CategoryId,
-        request: &UpdateCategoryRequest,
+        name: Option<String>,
+        classification: Option<Classification>,
+        color: Option<String>,
+        lucide_icon: Option<String>,
+        parent_id: Option<CategoryId>,
     ) -> ApiResult<CategoryDetail> {
+        let request = UpdateCategoryRequest {
+            category: UpdateCategoryData {
+                name,
+                classification,
+                color,
+                lucide_icon,
+                parent_id,
+            },
+        };
+
         self.execute_request(
             Method::PATCH,
             &format!("/api/v1/categories/{}", id),
             None,
-            Some(serde_json::to_string(request)?),
+            Some(serde_json::to_string(&request)?),
         )
         .await
     }

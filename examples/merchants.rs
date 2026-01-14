@@ -10,10 +10,8 @@
 //!   cargo run --example merchants -- --token YOUR_TOKEN delete --id MERCHANT_ID
 
 use clap::{Parser, Subcommand};
-use sure_client_rs::models::merchant::{
-    CreateMerchantData, CreateMerchantRequest, UpdateMerchantData, UpdateMerchantRequest,
-};
 use sure_client_rs::{Auth, MerchantId, SureClient};
+use url::Url;
 
 #[derive(Parser)]
 #[command(name = "merchants")]
@@ -24,8 +22,8 @@ struct Cli {
     token: String,
 
     /// Base URL for the API (defaults to production)
-    #[arg(long, env = "SURE_BASE_URL", default_value = "https://api.sure.app")]
-    base_url: String,
+    #[arg(long, env = "SURE_BASE_URL", default_value = "http://localhost:3000")]
+    base_url: Url,
 
     #[command(subcommand)]
     command: Commands,
@@ -134,11 +132,12 @@ async fn main() -> anyhow::Result<()> {
             println!("Updated:    {}", merchant.updated_at);
         }
         Commands::Create { name, color } => {
-            let request = CreateMerchantRequest {
-                merchant: CreateMerchantData { name, color },
-            };
-
-            let merchant = client.create_merchant(&request).await?;
+            let merchant = client
+                .create_merchant()
+                .name(name)
+                .maybe_color(color)
+                .call()
+                .await?;
 
             println!("✓ Merchant created successfully!");
             println!();
@@ -152,11 +151,13 @@ async fn main() -> anyhow::Result<()> {
             let merchant_id = MerchantId::parse(&id)
                 .map_err(|e| anyhow::anyhow!("Invalid merchant ID: {}", e))?;
 
-            let request = UpdateMerchantRequest {
-                merchant: UpdateMerchantData { name, color },
-            };
-
-            let merchant = client.update_merchant(&merchant_id, &request).await?;
+            let merchant = client
+                .update_merchant()
+                .id(&merchant_id)
+                .maybe_name(name)
+                .maybe_color(color)
+                .call()
+                .await?;
 
             println!("✓ Merchant updated successfully!");
             println!();

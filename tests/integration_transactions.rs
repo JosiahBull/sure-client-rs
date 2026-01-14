@@ -5,19 +5,18 @@
 
 use chrono::{NaiveDate, Utc};
 use rust_decimal::Decimal;
-use sure_client_rs::models::account::{AccountKind, CreateAccountData, CreateAccountRequest};
-use sure_client_rs::models::transaction::{
-    CreateTransactionData, CreateTransactionRequest, TransactionNature, UpdateTransactionData,
-    UpdateTransactionRequest,
-};
+use sure_client_rs::models::account::AccountKind;
+use sure_client_rs::models::transaction::TransactionNature;
 use sure_client_rs::{Auth, SureClient};
 
 /// Helper function to create a test client
 fn create_test_client() -> SureClient {
     dotenvy::dotenv().ok();
 
-    let base_url =
-        std::env::var("SURE_BASE_URL").unwrap_or_else(|_| "http://localhost:3000".to_string());
+    let base_url = std::env::var("SURE_BASE_URL")
+        .unwrap_or_else(|_| "http://localhost:3000".to_string())
+        .parse()
+        .unwrap();
     let token = std::env::var("SURE_TOKEN").expect("SURE_TOKEN must be set in .env file");
 
     SureClient::new(reqwest::Client::new(), Auth::api_key(token), base_url)
@@ -30,22 +29,14 @@ async fn test_transaction_crud_lifecycle() {
     let timestamp = Utc::now().timestamp();
 
     // First, create a test account for transactions
-    let account_request = CreateAccountRequest {
-        account: CreateAccountData {
-            name: format!("Transaction Test Account {}", timestamp),
-            kind: AccountKind::Depository,
-            balance: Some(Decimal::new(100000, 2)),
-            currency: Some("NZD".to_string()),
-            subtype: None,
-            institution_name: None,
-            institution_domain: None,
-            notes: Some("For transaction testing".to_string()),
-            accountable_attributes: None,
-        },
-    };
-
     let account = client
-        .create_account(&account_request)
+        .create_account()
+        .name(format!("Transaction Test Account {}", timestamp))
+        .kind(AccountKind::Depository)
+        .balance(Decimal::new(100000, 2))
+        .currency("NZD".to_string())
+        .notes("For transaction testing".to_string())
+        .call()
         .await
         .expect("Failed to create test account");
 
@@ -54,23 +45,16 @@ async fn test_transaction_crud_lifecycle() {
     // Create a transaction
     let transaction_date = NaiveDate::from_ymd_opt(2024, 1, 15).expect("Invalid date");
 
-    let create_request = CreateTransactionRequest {
-        transaction: CreateTransactionData {
-            account_id: account.id.clone(),
-            date: transaction_date,
-            amount: Decimal::new(4250, 2), // $42.50
-            name: format!("Test Transaction {}", timestamp),
-            notes: Some("Integration test transaction".to_string()),
-            currency: Some("NZD".to_string()),
-            category_id: None,
-            merchant_id: None,
-            nature: Some(TransactionNature::Expense),
-            tag_ids: None,
-        },
-    };
-
     let created = client
-        .create_transaction(&create_request)
+        .create_transaction()
+        .account_id(account.id.clone())
+        .date(transaction_date)
+        .amount(Decimal::new(4250, 2)) // $42.50
+        .name(format!("Test Transaction {}", timestamp))
+        .notes("Integration test transaction".to_string())
+        .currency("NZD".to_string())
+        .nature(TransactionNature::Expense)
+        .call()
         .await
         .expect("Failed to create transaction");
 
@@ -92,17 +76,13 @@ async fn test_transaction_crud_lifecycle() {
     println!("✓ Fetched transaction: {}", fetched.name);
 
     // Update the transaction
-    let update_request = UpdateTransactionRequest {
-        transaction: UpdateTransactionData {
-            name: Some(format!("Updated Transaction {}", timestamp)),
-            notes: Some("Updated during integration test".to_string()),
-            amount: Some(Decimal::new(5000, 2)), // $50.00
-            ..Default::default()
-        },
-    };
-
     let updated = client
-        .update_transaction(&created.id, &update_request)
+        .update_transaction()
+        .id(&created.id)
+        .name(format!("Updated Transaction {}", timestamp))
+        .notes("Updated during integration test".to_string())
+        .amount(Decimal::new(5000, 2)) // $50.00
+        .call()
         .await
         .expect("Failed to update transaction");
 
@@ -136,7 +116,7 @@ async fn test_transaction_crud_lifecycle() {
     );
 
     // Delete the transaction
-    let delete_response = client
+    let _delete_response = client
         .delete_transaction(&created.id)
         .await
         .expect("Failed to delete transaction");
@@ -192,22 +172,13 @@ async fn test_list_transactions_by_account() {
     let timestamp = Utc::now().timestamp();
 
     // Create a test account
-    let account_request = CreateAccountRequest {
-        account: CreateAccountData {
-            name: format!("Filter Test Account {}", timestamp),
-            kind: AccountKind::Depository,
-            balance: Some(Decimal::new(100000, 2)),
-            currency: Some("NZD".to_string()),
-            subtype: None,
-            institution_name: None,
-            institution_domain: None,
-            notes: None,
-            accountable_attributes: None,
-        },
-    };
-
     let account = client
-        .create_account(&account_request)
+        .create_account()
+        .name(format!("Filter Test Account {}", timestamp))
+        .kind(AccountKind::Depository)
+        .balance(Decimal::new(100000, 2))
+        .currency("NZD".to_string())
+        .call()
         .await
         .expect("Failed to create test account");
 
@@ -216,23 +187,15 @@ async fn test_list_transactions_by_account() {
     // Create a transaction for this account
     let transaction_date = NaiveDate::from_ymd_opt(2024, 6, 15).expect("Invalid date");
 
-    let create_request = CreateTransactionRequest {
-        transaction: CreateTransactionData {
-            account_id: account.id.clone(),
-            date: transaction_date,
-            amount: Decimal::new(2500, 2),
-            name: format!("Filter Test Transaction {}", timestamp),
-            notes: None,
-            currency: Some("NZD".to_string()),
-            category_id: None,
-            merchant_id: None,
-            nature: Some(TransactionNature::Expense),
-            tag_ids: None,
-        },
-    };
-
     let created_transaction = client
-        .create_transaction(&create_request)
+        .create_transaction()
+        .account_id(account.id.clone())
+        .date(transaction_date)
+        .amount(Decimal::new(2500, 2))
+        .name(format!("Filter Test Transaction {}", timestamp))
+        .currency("NZD".to_string())
+        .nature(TransactionNature::Expense)
+        .call()
         .await
         .expect("Failed to create transaction");
 
@@ -280,45 +243,29 @@ async fn test_transaction_with_income_nature() {
     let timestamp = Utc::now().timestamp();
 
     // Create test account
-    let account_request = CreateAccountRequest {
-        account: CreateAccountData {
-            name: format!("Income Test Account {}", timestamp),
-            kind: AccountKind::Depository,
-            balance: Some(Decimal::new(0, 2)),
-            currency: Some("NZD".to_string()),
-            subtype: None,
-            institution_name: None,
-            institution_domain: None,
-            notes: None,
-            accountable_attributes: None,
-        },
-    };
-
     let account = client
-        .create_account(&account_request)
+        .create_account()
+        .name(format!("Income Test Account {}", timestamp))
+        .kind(AccountKind::Depository)
+        .balance(Decimal::new(0, 2))
+        .currency("NZD".to_string())
+        .call()
         .await
         .expect("Failed to create test account");
 
     // Create an income transaction
     let transaction_date = NaiveDate::from_ymd_opt(2024, 3, 1).expect("Invalid date");
 
-    let create_request = CreateTransactionRequest {
-        transaction: CreateTransactionData {
-            account_id: account.id.clone(),
-            date: transaction_date,
-            amount: Decimal::new(150000, 2), // $1,500.00
-            name: format!("Salary Payment {}", timestamp),
-            notes: Some("Test income transaction".to_string()),
-            currency: Some("NZD".to_string()),
-            category_id: None,
-            merchant_id: None,
-            nature: Some(TransactionNature::Income),
-            tag_ids: None,
-        },
-    };
-
     let created = client
-        .create_transaction(&create_request)
+        .create_transaction()
+        .account_id(account.id.clone())
+        .date(transaction_date)
+        .amount(Decimal::new(150000, 2)) // $1,500.00
+        .name(format!("Salary Payment {}", timestamp))
+        .notes("Test income transaction".to_string())
+        .currency("NZD".to_string())
+        .nature(TransactionNature::Income)
+        .call()
         .await
         .expect("Failed to create income transaction");
 

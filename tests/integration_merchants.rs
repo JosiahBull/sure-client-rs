@@ -4,9 +4,6 @@
 //! Set SURE_BASE_URL and SURE_TOKEN environment variables in the .env file.
 
 use chrono::Utc;
-use sure_client_rs::models::merchant::{
-    CreateMerchantData, CreateMerchantRequest, UpdateMerchantData, UpdateMerchantRequest,
-};
 use sure_client_rs::{Auth, SureClient};
 
 /// Helper function to create a test client
@@ -14,7 +11,9 @@ fn create_test_client() -> SureClient {
     dotenvy::dotenv().ok();
 
     let base_url = std::env::var("SURE_BASE_URL")
-        .unwrap_or_else(|_| "http://localhost:3000".to_string());
+        .unwrap_or_else(|_| "http://localhost:3000".to_string())
+        .parse()
+        .unwrap();
     let token = std::env::var("SURE_TOKEN").expect("SURE_TOKEN must be set in .env file");
 
     SureClient::new(reqwest::Client::new(), Auth::api_key(token), base_url)
@@ -27,15 +26,11 @@ async fn test_merchant_crud_lifecycle() {
     let timestamp = Utc::now().timestamp();
 
     // Create a merchant
-    let create_request = CreateMerchantRequest {
-        merchant: CreateMerchantData {
-            name: format!("Test Merchant {}", timestamp),
-            color: Some("#FF5733".to_string()),
-        },
-    };
-
     let created = client
-        .create_merchant(&create_request)
+        .create_merchant()
+        .name(format!("Test Merchant {}", timestamp))
+        .color("#FF5733".to_string())
+        .call()
         .await
         .expect("Failed to create merchant");
 
@@ -54,15 +49,12 @@ async fn test_merchant_crud_lifecycle() {
     println!("✓ Fetched merchant: {}", fetched.name);
 
     // Update the merchant
-    let update_request = UpdateMerchantRequest {
-        merchant: UpdateMerchantData {
-            name: Some(format!("Updated Merchant {}", timestamp)),
-            color: Some("#3366FF".to_string()),
-        },
-    };
-
     let updated = client
-        .update_merchant(&created.id, &update_request)
+        .update_merchant()
+        .id(&created.id)
+        .name(format!("Updated Merchant {}", timestamp))
+        .color("#3366FF".to_string())
+        .call()
         .await
         .expect("Failed to update merchant");
 
@@ -72,14 +64,17 @@ async fn test_merchant_crud_lifecycle() {
 
     // List merchants (merchant may not appear immediately due to indexing)
     let merchants = client
-        .get_merchants().page(1).per_page(100).call()
+        .get_merchants()
+        .page(1)
+        .per_page(100)
+        .call()
         .await
         .expect("Failed to list merchants");
 
     println!("✓ Listed {} merchants", merchants.items.merchants.len());
 
     // Delete the merchant
-    let delete_response = client
+    let _delete_response = client
         .delete_merchant(&created.id)
         .await
         .expect("Failed to delete merchant");
@@ -100,15 +95,10 @@ async fn test_create_merchant_without_color() {
     let timestamp = Utc::now().timestamp();
 
     // Create merchant without color
-    let create_request = CreateMerchantRequest {
-        merchant: CreateMerchantData {
-            name: format!("No Color Merchant {}", timestamp),
-            color: None,
-        },
-    };
-
     let created = client
-        .create_merchant(&create_request)
+        .create_merchant()
+        .name(format!("No Color Merchant {}", timestamp))
+        .call()
         .await
         .expect("Failed to create merchant without color");
 
@@ -130,7 +120,10 @@ async fn test_list_merchants_pagination() {
 
     // Test first page
     let page1 = client
-        .get_merchants().page(1).per_page(10).call()
+        .get_merchants()
+        .page(1)
+        .per_page(10)
+        .call()
         .await
         .expect("Failed to get page 1");
 
@@ -139,7 +132,10 @@ async fn test_list_merchants_pagination() {
     // Test second page if there are more merchants
     if page1.items.merchants.len() == 10 {
         let page2 = client
-            .get_merchants().page(2).per_page(10).call()
+            .get_merchants()
+            .page(2)
+            .per_page(10)
+            .call()
             .await
             .expect("Failed to get page 2");
 
@@ -176,30 +172,22 @@ async fn test_update_merchant_name_only() {
     let timestamp = Utc::now().timestamp();
 
     // Create merchant
-    let create_request = CreateMerchantRequest {
-        merchant: CreateMerchantData {
-            name: format!("Original Name {}", timestamp),
-            color: Some("#FF0000".to_string()),
-        },
-    };
-
     let created = client
-        .create_merchant(&create_request)
+        .create_merchant()
+        .name(format!("Original Name {}", timestamp))
+        .color("#FF0000".to_string())
+        .call()
         .await
         .expect("Failed to create merchant");
 
     println!("✓ Created merchant with original name");
 
     // Update only the name
-    let update_request = UpdateMerchantRequest {
-        merchant: UpdateMerchantData {
-            name: Some(format!("New Name {}", timestamp)),
-            color: None,
-        },
-    };
-
     let updated = client
-        .update_merchant(&created.id, &update_request)
+        .update_merchant()
+        .id(&created.id)
+        .name(format!("New Name {}", timestamp))
+        .call()
         .await
         .expect("Failed to update merchant name");
 
@@ -222,15 +210,11 @@ async fn test_update_merchant_color_only() {
     let timestamp = Utc::now().timestamp();
 
     // Create merchant
-    let create_request = CreateMerchantRequest {
-        merchant: CreateMerchantData {
-            name: format!("Color Test Merchant {}", timestamp),
-            color: Some("#00FF00".to_string()),
-        },
-    };
-
     let created = client
-        .create_merchant(&create_request)
+        .create_merchant()
+        .name(format!("Color Test Merchant {}", timestamp))
+        .color("#00FF00".to_string())
+        .call()
         .await
         .expect("Failed to create merchant");
 
@@ -238,15 +222,11 @@ async fn test_update_merchant_color_only() {
     println!("✓ Created merchant with original color");
 
     // Update only the color
-    let update_request = UpdateMerchantRequest {
-        merchant: UpdateMerchantData {
-            name: None,
-            color: Some("#0000FF".to_string()),
-        },
-    };
-
     let updated = client
-        .update_merchant(&created.id, &update_request)
+        .update_merchant()
+        .id(&created.id)
+        .color("#0000FF".to_string())
+        .call()
         .await
         .expect("Failed to update merchant color");
 

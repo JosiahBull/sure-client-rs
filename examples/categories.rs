@@ -12,11 +12,9 @@
 //!   cargo run --example categories -- --token YOUR_TOKEN delete --id CATEGORY_ID
 
 use clap::{Parser, Subcommand};
-use sure_client_rs::models::category::{
-    Classification, CreateCategoryData, CreateCategoryRequest, UpdateCategoryData,
-    UpdateCategoryRequest,
-};
+use sure_client_rs::models::category::Classification;
 use sure_client_rs::{Auth, CategoryId, SureClient};
+use url::Url;
 
 #[derive(Parser)]
 #[command(name = "categories")]
@@ -27,8 +25,8 @@ struct Cli {
     token: String,
 
     /// Base URL for the API (defaults to production)
-    #[arg(long, env = "SURE_BASE_URL", default_value = "https://api.sure.app")]
-    base_url: String,
+    #[arg(long, env = "SURE_BASE_URL", default_value = "http://localhost:3000")]
+    base_url: Url,
 
     #[command(subcommand)]
     command: Commands,
@@ -47,7 +45,7 @@ enum Commands {
         per_page: Option<u32>,
 
         /// Filter by classification (income or expense)
-        #[arg(long, value_parser = parse_classification)]
+        #[arg(long)]
         classification: Option<Classification>,
 
         /// Return only root categories (no parent)
@@ -71,7 +69,7 @@ enum Commands {
         name: String,
 
         /// Classification (income or expense)
-        #[arg(long, value_parser = parse_classification)]
+        #[arg(long)]
         classification: Classification,
 
         /// Color in hex format (e.g., "#FF5733")
@@ -97,7 +95,7 @@ enum Commands {
         name: Option<String>,
 
         /// New classification (income or expense, optional)
-        #[arg(long, value_parser = parse_classification)]
+        #[arg(long)]
         classification: Option<Classification>,
 
         /// New color in hex format (optional)
@@ -120,21 +118,15 @@ enum Commands {
     },
 }
 
-fn parse_classification(s: &str) -> Result<Classification, String> {
-    match s.to_lowercase().as_str() {
-        "income" => Ok(Classification::Income),
-        "expense" => Ok(Classification::Expense),
-        _ => Err(format!(
-            "Invalid classification: {}. Must be 'income' or 'expense'",
-            s
-        )),
-    }
-}
-
-const fn format_classification(classification: &Classification) -> &str {
-    match classification {
-        Classification::Income => "Income",
-        Classification::Expense => "Expense",
+fn validate_and_normalize_hex_code(code: &str) -> Option<String> {
+    let code = code.trim();
+    if code.len() == 7
+        && code.starts_with('#')
+        && code.chars().skip(1).all(|c| c.is_ascii_hexdigit())
+    {
+        Some(code.to_uppercase())
+    } else {
+        None
     }
 }
 
@@ -184,10 +176,7 @@ async fn main() -> anyhow::Result<()> {
             for category in response.items.categories {
                 println!("ID:             {}", category.id);
                 println!("Name:           {}", category.name);
-                println!(
-                    "Classification: {}",
-                    format_classification(&category.classification)
-                );
+                println!("Classification: {}", category.classification);
                 println!("Color:          {}", category.color);
                 println!("Icon:           {}", category.icon);
 
@@ -212,10 +201,7 @@ async fn main() -> anyhow::Result<()> {
             println!();
             println!("ID:             {}", category.id);
             println!("Name:           {}", category.name);
-            println!(
-                "Classification: {}",
-                format_classification(&category.classification)
-            );
+            println!("Classification: {}", category.classification);
             println!("Color:          {}", category.color);
             println!("Icon:           {}", category.icon);
 
@@ -243,26 +229,28 @@ async fn main() -> anyhow::Result<()> {
                 None
             };
 
-            let request = CreateCategoryRequest {
-                category: CreateCategoryData {
-                    name,
-                    classification,
-                    color,
-                    lucide_icon: icon,
-                    parent_id,
-                },
-            };
+            if validate_and_normalize_hex_code(&color).is_none() {
+                return Err(anyhow::anyhow!(
+                    "Invalid color code: {}. Must be in hex format like '#FF5733'.",
+                    color
+                ));
+            }
 
-            let category = client.create_category(&request).await?;
+            let category = client
+                .create_category()
+                .name(name)
+                .classification(classification)
+                .color(color)
+                .maybe_lucide_icon(icon)
+                .maybe_parent_id(parent_id)
+                .call()
+                .await?;
 
             println!("✓ Category created successfully!");
             println!();
             println!("ID:             {}", category.id);
             println!("Name:           {}", category.name);
-            println!(
-                "Classification: {}",
-                format_classification(&category.classification)
-            );
+            println!("Classification: {}", category.classification);
             println!("Color:          {}", category.color);
             println!("Icon:           {}", category.icon);
 
@@ -290,26 +278,22 @@ async fn main() -> anyhow::Result<()> {
                 None
             };
 
-            let request = UpdateCategoryRequest {
-                category: UpdateCategoryData {
-                    name,
-                    classification,
-                    color,
-                    lucide_icon: icon,
-                    parent_id,
-                },
-            };
-
-            let category = client.update_category(&category_id, &request).await?;
+            let category = client
+                .update_category()
+                .id(&category_id)
+                .maybe_name(name)
+                .maybe_classification(classification)
+                .maybe_color(color)
+                .maybe_lucide_icon(icon)
+                .maybe_parent_id(parent_id)
+                .call()
+                .await?;
 
             println!("✓ Category updated successfully!");
             println!();
             println!("ID:             {}", category.id);
             println!("Name:           {}", category.name);
-            println!(
-                "Classification: {}",
-                format_classification(&category.classification)
-            );
+            println!("Classification: {}", category.classification);
             println!("Color:          {}", category.color);
             println!("Icon:           {}", category.icon);
 

@@ -13,11 +13,9 @@
 use chrono::NaiveDate;
 use clap::{Parser, Subcommand};
 use rust_decimal::Decimal;
-use sure_client_rs::models::transaction::{
-    CreateTransactionData, CreateTransactionRequest, TransactionType, UpdateTransactionData,
-    UpdateTransactionRequest,
-};
-use sure_client_rs::{AccountId, Auth, CategoryId, MerchantId, SureClient, TransactionId};
+use sure_client_rs::models::transaction::{TransactionNature, TransactionType};
+use sure_client_rs::{AccountId, Auth, CategoryId, MerchantId, SureClient, TagId, TransactionId};
+use url::Url;
 
 #[derive(Parser)]
 #[command(name = "transactions")]
@@ -28,8 +26,8 @@ struct Cli {
     token: String,
 
     /// Base URL for the API (defaults to production)
-    #[arg(long, env = "SURE_BASE_URL", default_value = "https://api.sure.app")]
-    base_url: String,
+    #[arg(long, env = "SURE_BASE_URL", default_value = "http://localhost:3000")]
+    base_url: Url,
 
     #[command(subcommand)]
     command: Commands,
@@ -69,14 +67,14 @@ enum Commands {
 
         /// Minimum amount
         #[arg(long)]
-        min_amount: Option<String>,
+        min_amount: Option<Decimal>,
 
         /// Maximum amount
         #[arg(long)]
-        max_amount: Option<String>,
+        max_amount: Option<Decimal>,
 
         /// Transaction type (income or expense)
-        #[arg(long, value_parser = parse_transaction_type)]
+        #[arg(long)]
         transaction_type: Option<TransactionType>,
 
         /// Search by name, notes, or merchant name
@@ -101,7 +99,7 @@ enum Commands {
 
         /// Transaction amount (e.g., 42.50)
         #[arg(long)]
-        amount: String,
+        amount: Decimal,
 
         /// Transaction name/description
         #[arg(long)]
@@ -122,6 +120,14 @@ enum Commands {
         /// Merchant ID (UUID, optional)
         #[arg(long)]
         merchant_id: Option<String>,
+
+        /// Transaction nature (optional: debit or credit)
+        #[arg(long)]
+        nature: Option<TransactionNature>,
+
+        /// Tag IDs (UUID, comma-separated, optional)
+        #[arg(long, value_delimiter = ',')]
+        tag_ids: Option<Vec<String>>,
     },
     /// Update a transaction
     Update {
@@ -135,7 +141,7 @@ enum Commands {
 
         /// New transaction amount (optional)
         #[arg(long)]
-        amount: Option<String>,
+        amount: Option<Decimal>,
 
         /// New transaction name (optional)
         #[arg(long)]
@@ -156,6 +162,14 @@ enum Commands {
         /// New merchant ID (UUID, optional)
         #[arg(long)]
         merchant_id: Option<String>,
+
+        /// New transaction nature (optional: debit or credit)
+        #[arg(long)]
+        nature: Option<TransactionNature>,
+
+        /// New tag IDs (UUID, comma-separated, optional)
+        #[arg(long, value_delimiter = ',')]
+        tag_ids: Option<Vec<String>>,
     },
     /// Delete a transaction
     Delete {
@@ -165,25 +179,9 @@ enum Commands {
     },
 }
 
-fn parse_transaction_type(s: &str) -> Result<TransactionType, String> {
-    match s.to_lowercase().as_str() {
-        "income" => Ok(TransactionType::Income),
-        "expense" => Ok(TransactionType::Expense),
-        _ => Err(format!(
-            "Invalid transaction type: {}. Must be 'income' or 'expense'",
-            s
-        )),
-    }
-}
-
 fn parse_date(s: &str) -> anyhow::Result<NaiveDate> {
     NaiveDate::parse_from_str(s, "%Y-%m-%d")
         .map_err(|e| anyhow::anyhow!("Invalid date format '{}': {}. Use YYYY-MM-DD", s, e))
-}
-
-fn parse_decimal(s: &str) -> anyhow::Result<Decimal> {
-    s.parse::<Decimal>()
-        .map_err(|e| anyhow::anyhow!("Invalid amount '{}': {}", s, e))
 }
 
 #[tokio::main]
@@ -245,18 +243,6 @@ async fn main() -> anyhow::Result<()> {
 
             let end_date = if let Some(date_str) = &end_date {
                 Some(parse_date(date_str)?)
-            } else {
-                None
-            };
-
-            let min_amount = if let Some(amount_str) = &min_amount {
-                Some(parse_decimal(amount_str)?)
-            } else {
-                None
-            };
-
-            let max_amount = if let Some(amount_str) = &max_amount {
-                Some(parse_decimal(amount_str)?)
             } else {
                 None
             };
@@ -378,12 +364,13 @@ async fn main() -> anyhow::Result<()> {
             currency,
             category_id,
             merchant_id,
+            nature,
+            tag_ids,
         } => {
             let account_id = AccountId::parse(&account_id)
                 .map_err(|e| anyhow::anyhow!("Invalid account ID: {}", e))?;
 
             let date = parse_date(&date)?;
-            let amount = parse_decimal(&amount)?;
 
             let category_id = if let Some(id_str) = &category_id {
                 Some(
@@ -403,22 +390,33 @@ async fn main() -> anyhow::Result<()> {
                 None
             };
 
-            let request = CreateTransactionRequest {
-                transaction: CreateTransactionData {
-                    account_id,
-                    date,
-                    amount,
-                    name,
-                    notes,
-                    currency,
-                    category_id,
-                    merchant_id,
-                    nature: None,
-                    tag_ids: None,
-                },
+            let tag_ids = if let Some(tag_id_strs) = tag_ids {
+                let parsed_ids: Result<Vec<TagId>, _> = tag_id_strs
+                    .iter()
+                    .map(|id_str| {
+                        TagId::parse(id_str)
+                            .map_err(|e| anyhow::anyhow!("Invalid tag ID '{}': {}", id_str, e))
+                    })
+                    .collect();
+                Some(parsed_ids?)
+            } else {
+                None
             };
 
-            let transaction = client.create_transaction(&request).await?;
+            let transaction = client
+                .create_transaction()
+                .account_id(account_id)
+                .date(date)
+                .amount(amount)
+                .name(name)
+                .maybe_notes(notes)
+                .maybe_currency(currency)
+                .maybe_category_id(category_id)
+                .maybe_merchant_id(merchant_id)
+                .maybe_nature(nature)
+                .maybe_tag_ids(tag_ids)
+                .call()
+                .await?;
 
             println!("Transaction created successfully!");
             println!();
@@ -437,18 +435,14 @@ async fn main() -> anyhow::Result<()> {
             currency,
             category_id,
             merchant_id,
+            nature,
+            tag_ids,
         } => {
             let transaction_id = TransactionId::parse(&id)
                 .map_err(|e| anyhow::anyhow!("Invalid transaction ID: {}", e))?;
 
             let date = if let Some(date_str) = &date {
                 Some(parse_date(date_str)?)
-            } else {
-                None
-            };
-
-            let amount = if let Some(amount_str) = &amount {
-                Some(parse_decimal(amount_str)?)
             } else {
                 None
             };
@@ -471,21 +465,33 @@ async fn main() -> anyhow::Result<()> {
                 None
             };
 
-            let request = UpdateTransactionRequest {
-                transaction: UpdateTransactionData {
-                    date,
-                    amount,
-                    name,
-                    notes,
-                    currency,
-                    category_id,
-                    merchant_id,
-                    nature: None,
-                    tag_ids: None,
-                },
+            let tag_ids = if let Some(tag_id_strs) = tag_ids {
+                let parsed_ids: Result<Vec<TagId>, _> = tag_id_strs
+                    .iter()
+                    .map(|id_str| {
+                        TagId::parse(id_str)
+                            .map_err(|e| anyhow::anyhow!("Invalid tag ID '{}': {}", id_str, e))
+                    })
+                    .collect();
+                Some(parsed_ids?)
+            } else {
+                None
             };
 
-            let transaction = client.update_transaction(&transaction_id, &request).await?;
+            let transaction = client
+                .update_transaction()
+                .id(&transaction_id)
+                .maybe_date(date)
+                .maybe_amount(amount)
+                .maybe_name(name)
+                .maybe_notes(notes)
+                .maybe_currency(currency)
+                .maybe_category_id(category_id)
+                .maybe_merchant_id(merchant_id)
+                .maybe_nature(nature)
+                .maybe_tag_ids(tag_ids)
+                .call()
+                .await?;
 
             println!("Transaction updated successfully!");
             println!();

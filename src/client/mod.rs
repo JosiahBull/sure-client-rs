@@ -8,6 +8,8 @@ mod sync;
 mod transactions;
 mod usage;
 
+use url::Url;
+
 use crate::types::Auth;
 
 /// The main Sure API client
@@ -27,7 +29,7 @@ use crate::types::Auth;
 /// let client = SureClient::new(
 ///     reqwest::Client::new(),
 ///     Auth::api_key("your_api_key"),
-///     "https://api.sure.app".to_string(),
+///     "http://localhost:3000".to_string().parse().unwrap(),
 /// );
 ///
 /// let categories = client.get_categories().call().await?;
@@ -43,7 +45,7 @@ use crate::types::Auth;
 /// let client = SureClient::new(
 ///     reqwest::Client::new(),
 ///     Auth::bearer("your_jwt_token"),
-///     "https://api.sure.app".to_string(),
+///     "http://localhost:3000".to_string().parse().unwrap(),
 /// );
 ///
 /// let categories = client.get_categories().call().await?;
@@ -56,8 +58,8 @@ pub struct SureClient {
     pub(crate) client: reqwest::Client,
     /// Authentication credentials (Bearer token or API key)
     pub(crate) auth: Auth,
-    /// Base URL for the API (defaults to production)
-    pub(crate) base_url: String,
+    /// Base URL for the API
+    pub(crate) base_url: Url,
 }
 
 impl SureClient {
@@ -75,7 +77,7 @@ impl SureClient {
     /// let client = SureClient::new(
     ///     reqwest::Client::new(),
     ///     Auth::api_key("your_api_key"),
-    ///     "https://api.sure.app".to_string()
+    ///     "http://localhost:3000".to_string().parse().unwrap()
     /// );
     /// ```
     ///
@@ -86,14 +88,10 @@ impl SureClient {
     /// let client = SureClient::new(
     ///     reqwest::Client::new(),
     ///     Auth::bearer("your_token"),
-    ///     "https://api.sure.app".to_string()
+    ///     "http://localhost:3000".to_string().parse().unwrap()
     /// );
     /// ```
-    pub fn new<T: Into<Auth>>(
-        client: reqwest::Client,
-        auth: T,
-        base_url: String,
-    ) -> Self {
+    pub fn new<T: Into<Auth>>(client: reqwest::Client, auth: T, base_url: Url) -> Self {
         Self {
             client,
             auth: auth.into(),

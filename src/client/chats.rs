@@ -75,7 +75,9 @@ impl SureClient {
     /// Creates a new chat with an optional initial message.
     ///
     /// # Arguments
-    /// * `request` - The chat creation request containing title and optional message
+    /// * `title` - Chat title (required)
+    /// * `message` - Optional initial message
+    /// * `model` - Optional OpenAI model identifier
     ///
     /// # Returns
     /// Detailed information about the created chat.
@@ -88,27 +90,37 @@ impl SureClient {
     /// # Example
     /// ```no_run
     /// use sure_client_rs::{SureClient, BearerToken};
-    /// use sure_client_rs::models::chat::CreateChatRequest;
     ///
     /// # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
-    /// let request = CreateChatRequest {
-    ///     title: "Monthly budget review".to_string(),
-    ///     message: Some("Help me analyze my spending".to_string()),
-    ///     model: None,
-    /// };
+    /// let chat = client.create_chat()
+    ///     .title("Monthly budget review".to_string())
+    ///     .message("Help me analyze my spending".to_string())
+    ///     .call()
+    ///     .await?;
     ///
-    /// let chat = client.create_chat(&request).await?;
     /// println!("Created chat: {}", chat.title);
     /// # Ok(())
     /// # }
     /// ```
     ///
-    pub async fn create_chat(&self, request: &CreateChatRequest) -> ApiResult<ChatDetail> {
+    #[builder]
+    pub async fn create_chat(
+        &self,
+        title: String,
+        message: Option<String>,
+        model: Option<String>,
+    ) -> ApiResult<ChatDetail> {
+        let request = CreateChatRequest {
+            title,
+            message,
+            model,
+        };
+
         self.execute_request(
             Method::POST,
             "/api/v1/chats",
             None,
-            Some(serde_json::to_string(request)?),
+            Some(serde_json::to_string(&request)?),
         )
         .await
     }
@@ -153,7 +165,7 @@ impl SureClient {
     ///
     /// # Arguments
     /// * `id` - The chat ID to update
-    /// * `request` - The update request containing the new title
+    /// * `title` - Updated chat title
     ///
     /// # Returns
     /// Updated chat information.
@@ -167,31 +179,31 @@ impl SureClient {
     /// # Example
     /// ```no_run
     /// use sure_client_rs::{SureClient, BearerToken};
-    /// use sure_client_rs::models::chat::UpdateChatRequest;
     /// use uuid::Uuid;
     ///
     /// # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
     /// let chat_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
-    /// let request = UpdateChatRequest {
-    ///     title: "Updated chat title".to_string(),
-    /// };
     ///
-    /// let chat = client.update_chat(&chat_id, &request).await?;
+    /// let chat = client.update_chat()
+    ///     .id(&chat_id)
+    ///     .title("Updated chat title".to_string())
+    ///     .call()
+    ///     .await?;
+    ///
     /// println!("Updated chat: {}", chat.title);
     /// # Ok(())
     /// # }
     /// ```
     ///
-    pub async fn update_chat(
-        &self,
-        id: &Uuid,
-        request: &UpdateChatRequest,
-    ) -> ApiResult<ChatDetail> {
+    #[builder]
+    pub async fn update_chat(&self, id: &Uuid, title: String) -> ApiResult<ChatDetail> {
+        let request = UpdateChatRequest { title };
+
         self.execute_request(
             Method::PATCH,
             &format!("/api/v1/chats/{}", id),
             None,
-            Some(serde_json::to_string(request)?),
+            Some(serde_json::to_string(&request)?),
         )
         .await
     }
@@ -241,7 +253,8 @@ impl SureClient {
     ///
     /// # Arguments
     /// * `chat_id` - The chat ID to send the message to
-    /// * `request` - The message creation request containing content
+    /// * `content` - Message content
+    /// * `model` - Optional model identifier
     ///
     /// # Returns
     /// The created message with response status.
@@ -255,32 +268,36 @@ impl SureClient {
     /// # Example
     /// ```no_run
     /// use sure_client_rs::{SureClient, BearerToken};
-    /// use sure_client_rs::models::chat::CreateMessageRequest;
     /// use uuid::Uuid;
     ///
     /// # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
     /// let chat_id = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
-    /// let request = CreateMessageRequest {
-    ///     content: "What were my expenses last month?".to_string(),
-    ///     model: None,
-    /// };
     ///
-    /// let message = client.create_message(&chat_id, &request).await?;
+    /// let message = client.create_message()
+    ///     .chat_id(&chat_id)
+    ///     .content("What were my expenses last month?".to_string())
+    ///     .call()
+    ///     .await?;
+    ///
     /// println!("Message sent: {}", message.content);
     /// # Ok(())
     /// # }
     /// ```
     ///
+    #[builder]
     pub async fn create_message(
         &self,
         chat_id: &Uuid,
-        request: &CreateMessageRequest,
+        content: String,
+        model: Option<String>,
     ) -> ApiResult<MessageResponse> {
+        let request = CreateMessageRequest { content, model };
+
         self.execute_request(
             Method::POST,
             &format!("/api/v1/chats/{}/messages", chat_id),
             None,
-            Some(serde_json::to_string(request)?),
+            Some(serde_json::to_string(&request)?),
         )
         .await
     }

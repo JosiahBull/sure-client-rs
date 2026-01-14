@@ -1,12 +1,15 @@
-use crate::models::{DeleteResponse, PaginatedResponse};
 use crate::models::account::{
-    AccountCollection, AccountDetail, CreateAccountRequest, UpdateAccountRequest,
+    AccountCollection, AccountDetail, AccountKind, CreateAccountData, CreateAccountRequest,
+    UpdateAccountData, UpdateAccountRequest,
 };
+use crate::models::{DeleteResponse, PaginatedResponse};
 use crate::types::AccountId;
 use crate::{ApiError, error::ApiResult};
 use bon::bon;
 use reqwest::Method;
+use rust_decimal::Decimal;
 use std::collections::HashMap;
+use url::Url;
 
 use super::SureClient;
 
@@ -97,16 +100,12 @@ impl SureClient {
     /// # }
     /// ```
     pub async fn get_account(&self, id: &AccountId) -> ApiResult<AccountDetail> {
-        self.execute_request(
-            Method::GET,
-            &format!("/api/v1/accounts/{}", id),
-            None,
-            None,
-        )
-        .await
+        self.execute_request(Method::GET, &format!("/api/v1/accounts/{}", id), None, None)
+            .await
     }
 }
 
+#[bon]
 impl SureClient {
     /// Create a new account
     ///
@@ -126,35 +125,56 @@ impl SureClient {
     /// # Example
     /// ```no_run
     /// use sure_client_rs::{SureClient, BearerToken};
-    /// use sure_client_rs::models::account::{CreateAccountRequest, CreateAccountData, AccountKind};
+    /// use sure_client_rs::models::account::AccountKind;
     /// use rust_decimal::Decimal;
     ///
     /// # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
-    /// let request = CreateAccountRequest {
-    ///     account: CreateAccountData {
-    ///         name: "Checking Account".to_string(),
-    ///         kind: AccountKind::Depository,
-    ///         balance: Some(Decimal::new(100000, 2)), // $1,000.00
-    ///         currency: Some("USD".to_string()),
-    ///         subtype: Some("checking".to_string()),
-    ///         institution_name: Some("Bank of Example".to_string()),
-    ///         institution_domain: None,
-    ///         notes: None,
-    ///         accountable_attributes: None,
-    ///     },
-    /// };
+    /// let account = client.create_account()
+    ///     .name("Checking Account".to_string())
+    ///     .kind(AccountKind::Depository)
+    ///     .balance(Decimal::new(100000, 2)) // $1,000.00
+    ///     .currency("USD".to_string())
+    ///     .subtype("checking".to_string())
+    ///     .institution_name("Bank of Example".to_string())
+    ///     .call()
+    ///     .await?;
     ///
-    /// let account = client.create_account(&request).await?;
     /// println!("Created account: {}", account.name);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn create_account(&self, request: &CreateAccountRequest) -> ApiResult<AccountDetail> {
+    #[builder]
+    pub async fn create_account(
+        &self,
+        name: String,
+        kind: AccountKind,
+        balance: Option<Decimal>,
+        currency: Option<String>,
+        subtype: Option<String>,
+        institution_name: Option<String>,
+        institution_domain: Option<Url>,
+        notes: Option<String>,
+        accountable_attributes: Option<serde_json::Value>,
+    ) -> ApiResult<AccountDetail> {
+        let request = CreateAccountRequest {
+            account: CreateAccountData {
+                name,
+                kind,
+                balance,
+                currency,
+                subtype,
+                institution_name,
+                institution_domain,
+                notes,
+                accountable_attributes,
+            },
+        };
+
         self.execute_request(
             Method::POST,
             "/api/v1/accounts",
             None,
-            Some(serde_json::to_string(request)?),
+            Some(serde_json::to_string(&request)?),
         )
         .await
     }
@@ -180,36 +200,52 @@ impl SureClient {
     /// # Example
     /// ```no_run
     /// use sure_client_rs::{SureClient, BearerToken, AccountId};
-    /// use sure_client_rs::models::account::{UpdateAccountRequest, UpdateAccountData};
     /// use rust_decimal::Decimal;
     /// use uuid::Uuid;
     ///
     /// # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
     /// let account_id = AccountId::new(Uuid::new_v4());
     ///
-    /// let request = UpdateAccountRequest {
-    ///     account: UpdateAccountData {
-    ///         name: Some("Updated Account Name".to_string()),
-    ///         balance: Some(Decimal::new(150000, 2)), // $1,500.00
-    ///         ..Default::default()
-    ///     },
-    /// };
+    /// let account = client.update_account()
+    ///     .id(&account_id)
+    ///     .name("Updated Account Name".to_string())
+    ///     .balance(Decimal::new(150000, 2)) // $1,500.00
+    ///     .call()
+    ///     .await?;
     ///
-    /// let account = client.update_account(&account_id, &request).await?;
     /// println!("Updated account: {}", account.name);
     /// # Ok(())
     /// # }
     /// ```
+    #[builder]
     pub async fn update_account(
         &self,
         id: &AccountId,
-        request: &UpdateAccountRequest,
+        name: Option<String>,
+        balance: Option<Decimal>,
+        subtype: Option<String>,
+        institution_name: Option<String>,
+        institution_domain: Option<Url>,
+        notes: Option<String>,
+        accountable_attributes: Option<serde_json::Value>,
     ) -> ApiResult<AccountDetail> {
+        let request = UpdateAccountRequest {
+            account: UpdateAccountData {
+                name,
+                balance,
+                subtype,
+                institution_name,
+                institution_domain,
+                notes,
+                accountable_attributes,
+            },
+        };
+
         self.execute_request(
             Method::PATCH,
             &format!("/api/v1/accounts/{}", id),
             None,
-            Some(serde_json::to_string(request)?),
+            Some(serde_json::to_string(&request)?),
         )
         .await
     }

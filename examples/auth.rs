@@ -9,9 +9,8 @@
 
 use clap::{Parser, Subcommand};
 use sure_client_rs::SureClient;
-use sure_client_rs::models::auth::{
-    DeviceInfo, LoginRequest, RefreshDeviceInfo, RefreshTokenRequest, SignupRequest, SignupUserData,
-};
+use sure_client_rs::models::auth::{DeviceInfo, RefreshDeviceInfo, SignupUserData};
+use url::Url;
 use uuid::Uuid;
 
 #[derive(Parser)]
@@ -19,8 +18,8 @@ use uuid::Uuid;
 #[command(about = "Authentication operations via the Sure API", long_about = None)]
 struct Cli {
     /// Base URL for the API (defaults to production)
-    #[arg(long, env = "SURE_BASE_URL", default_value = "https://api.sure.app")]
-    base_url: String,
+    #[arg(long, env = "SURE_BASE_URL", default_value = "http://localhost:3000")]
+    base_url: Url,
 
     #[command(subcommand)]
     command: Commands,
@@ -91,18 +90,17 @@ async fn main() -> anyhow::Result<()> {
                 app_version: env!("CARGO_PKG_VERSION").to_string(),
             };
 
-            let request = SignupRequest {
-                user: SignupUserData {
+            let response = client
+                .signup()
+                .user(SignupUserData {
                     email,
                     password,
                     first_name,
                     last_name,
-                },
-                invite_code: None,
-                device,
-            };
-
-            let response = client.signup(&request).await?;
+                })
+                .device(device)
+                .call()
+                .await?;
 
             println!("Signup successful!");
             println!();
@@ -126,14 +124,13 @@ async fn main() -> anyhow::Result<()> {
                 app_version: env!("CARGO_PKG_VERSION").to_string(),
             };
 
-            let request = LoginRequest {
-                email,
-                password,
-                otp_code: None,
-                device,
-            };
-
-            let response = client.login(&request).await?;
+            let response = client
+                .login()
+                .email(email)
+                .password(password)
+                .device(device)
+                .call()
+                .await?;
 
             println!("Login successful!");
             println!();
@@ -153,12 +150,12 @@ async fn main() -> anyhow::Result<()> {
                 device_id: format!("cli-{}", Uuid::new_v4()),
             };
 
-            let request = RefreshTokenRequest {
-                refresh_token,
-                device,
-            };
-
-            let response = client.refresh_token(&request).await?;
+            let response = client
+                .refresh_token()
+                .refresh_token(refresh_token)
+                .device(device)
+                .call()
+                .await?;
 
             println!("Token refresh successful!");
             println!();

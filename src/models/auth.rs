@@ -10,6 +10,53 @@ pub enum TokenType {
     Bearer,
 }
 
+impl std::fmt::Display for TokenType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TokenType::Bearer => write!(f, "Bearer"),
+        }
+    }
+}
+
+/// Error returned when parsing a `TokenType` from a string fails.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParseTokenTypeError(String);
+
+impl std::fmt::Display for ParseTokenTypeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Invalid token type: {}", self.0)
+    }
+}
+
+impl std::error::Error for ParseTokenTypeError {}
+
+impl std::str::FromStr for TokenType {
+    type Err = ParseTokenTypeError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Bearer" => Ok(TokenType::Bearer),
+            _ => Err(ParseTokenTypeError(s.to_string())),
+        }
+    }
+}
+
+impl TryFrom<&str> for TokenType {
+    type Error = ParseTokenTypeError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+
+impl TryFrom<String> for TokenType {
+    type Error = ParseTokenTypeError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+
 /// Base authentication token response
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
@@ -101,7 +148,7 @@ pub struct DeviceInfo {
 /// Sign up request
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct SignupRequest {
+pub(crate) struct SignupRequest {
     /// User information
     pub user: SignupUserData,
     /// Invite code (required if invite codes are enabled)
@@ -128,7 +175,7 @@ pub struct SignupUserData {
 /// Login request
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct LoginRequest {
+pub(crate) struct LoginRequest {
     /// Email address
     pub email: String,
     /// Password
@@ -143,7 +190,7 @@ pub struct LoginRequest {
 /// Refresh token request
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct RefreshTokenRequest {
+pub(crate) struct RefreshTokenRequest {
     /// Refresh token
     pub refresh_token: String,
     /// Device information

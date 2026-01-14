@@ -1,8 +1,8 @@
 use crate::ApiError;
 use crate::error::ApiResult;
 use crate::models::transaction::{
-    CreateTransactionRequest, Transaction, TransactionCollection, TransactionType,
-    UpdateTransactionRequest,
+    CreateTransactionData, CreateTransactionRequest, Transaction, TransactionCollection,
+    TransactionNature, TransactionType, UpdateTransactionData, UpdateTransactionRequest,
 };
 use crate::models::{DeleteResponse, PaginatedResponse};
 use crate::types::{AccountId, CategoryId, MerchantId, TagId, TransactionId};
@@ -174,7 +174,16 @@ impl SureClient {
     /// Creates a new transaction with the specified details.
     ///
     /// # Arguments
-    /// * `request` - The transaction creation request containing all required fields
+    /// * `account_id` - Account ID (required)
+    /// * `date` - Transaction date (required)
+    /// * `amount` - Transaction amount (required)
+    /// * `name` - Transaction name/description (required)
+    /// * `notes` - Additional notes
+    /// * `currency` - Currency code (defaults to family currency)
+    /// * `category_id` - Category ID
+    /// * `merchant_id` - Merchant ID
+    /// * `nature` - Transaction nature (determines sign)
+    /// * `tag_ids` - Tag IDs
     ///
     /// # Returns
     /// The newly created transaction.
@@ -187,42 +196,59 @@ impl SureClient {
     /// # Example
     /// ```no_run
     /// use sure_client_rs::{SureClient, BearerToken, AccountId};
-    /// use sure_client_rs::models::transaction::{CreateTransactionRequest, CreateTransactionData};
     /// use chrono::NaiveDate;
     /// use rust_decimal::Decimal;
     /// use uuid::Uuid;
     ///
     /// # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
-    /// let request = CreateTransactionRequest {
-    ///     transaction: CreateTransactionData {
-    ///         account_id: AccountId::new(Uuid::new_v4()),
-    ///         date: NaiveDate::from_ymd_opt(2024, 1, 15).unwrap(),
-    ///         amount: Decimal::new(4250, 2), // $42.50
-    ///         name: "Grocery Store".to_string(),
-    ///         notes: None,
-    ///         currency: Some("USD".to_string()),
-    ///         category_id: None,
-    ///         merchant_id: None,
-    ///         nature: None,
-    ///         tag_ids: None,
-    ///     },
-    /// };
+    /// let transaction = client.create_transaction()
+    ///     .account_id(AccountId::new(Uuid::new_v4()))
+    ///     .date(NaiveDate::from_ymd_opt(2024, 1, 15).unwrap())
+    ///     .amount(Decimal::new(4250, 2)) // $42.50
+    ///     .name("Grocery Store".to_string())
+    ///     .currency("USD".to_string())
+    ///     .call()
+    ///     .await?;
     ///
-    /// let transaction = client.create_transaction(&request).await?;
     /// println!("Created transaction: {}", transaction.id);
     /// # Ok(())
     /// # }
     /// ```
     ///
+    #[builder]
     pub async fn create_transaction(
         &self,
-        request: &CreateTransactionRequest,
+        account_id: AccountId,
+        date: NaiveDate,
+        amount: Decimal,
+        name: String,
+        notes: Option<String>,
+        currency: Option<String>,
+        category_id: Option<CategoryId>,
+        merchant_id: Option<MerchantId>,
+        nature: Option<TransactionNature>,
+        tag_ids: Option<Vec<TagId>>,
     ) -> ApiResult<Transaction> {
+        let request = CreateTransactionRequest {
+            transaction: CreateTransactionData {
+                account_id,
+                date,
+                amount,
+                name,
+                notes,
+                currency,
+                category_id,
+                merchant_id,
+                nature,
+                tag_ids,
+            },
+        };
+
         self.execute_request(
             Method::POST,
             "/api/v1/transactions",
             None,
-            Some(serde_json::to_string(request)?),
+            Some(serde_json::to_string(&request)?),
         )
         .await
     }
@@ -269,12 +295,19 @@ impl SureClient {
 
     /// Update a transaction
     ///
-    /// Updates an existing transaction with new values. Only fields provided in the
-    /// request will be updated.
+    /// Updates an existing transaction with new values. Only fields provided will be updated.
     ///
     /// # Arguments
     /// * `id` - The transaction ID to update
-    /// * `request` - The transaction update request containing fields to update
+    /// * `date` - Transaction date
+    /// * `amount` - Transaction amount
+    /// * `name` - Transaction name/description
+    /// * `notes` - Additional notes
+    /// * `currency` - Currency code
+    /// * `category_id` - Category ID
+    /// * `merchant_id` - Merchant ID
+    /// * `nature` - Transaction nature
+    /// * `tag_ids` - Tag IDs
     ///
     /// # Returns
     /// The updated transaction.
@@ -288,37 +321,57 @@ impl SureClient {
     /// # Example
     /// ```no_run
     /// use sure_client_rs::{SureClient, BearerToken, TransactionId};
-    /// use sure_client_rs::models::transaction::{UpdateTransactionRequest, UpdateTransactionData};
     /// use rust_decimal::Decimal;
     /// use uuid::Uuid;
     ///
     /// # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
     /// let transaction_id = TransactionId::new(Uuid::new_v4());
     ///
-    /// let request = UpdateTransactionRequest {
-    ///     transaction: UpdateTransactionData {
-    ///         amount: Some(Decimal::new(5000, 2)), // Update to $50.00
-    ///         notes: Some("Updated notes".to_string()),
-    ///         ..Default::default()
-    ///     },
-    /// };
+    /// let transaction = client.update_transaction()
+    ///     .id(&transaction_id)
+    ///     .amount(Decimal::new(5000, 2)) // Update to $50.00
+    ///     .notes("Updated notes".to_string())
+    ///     .call()
+    ///     .await?;
     ///
-    /// let transaction = client.update_transaction(&transaction_id, &request).await?;
     /// println!("Updated transaction: {}", transaction.id);
     /// # Ok(())
     /// # }
     /// ```
     ///
+    #[builder]
     pub async fn update_transaction(
         &self,
         id: &TransactionId,
-        request: &UpdateTransactionRequest,
+        date: Option<NaiveDate>,
+        amount: Option<Decimal>,
+        name: Option<String>,
+        notes: Option<String>,
+        currency: Option<String>,
+        category_id: Option<CategoryId>,
+        merchant_id: Option<MerchantId>,
+        nature: Option<TransactionNature>,
+        tag_ids: Option<Vec<TagId>>,
     ) -> ApiResult<Transaction> {
+        let request = UpdateTransactionRequest {
+            transaction: UpdateTransactionData {
+                date,
+                amount,
+                name,
+                notes,
+                currency,
+                category_id,
+                merchant_id,
+                nature,
+                tag_ids,
+            },
+        };
+
         self.execute_request(
             Method::PATCH,
             &format!("/api/v1/transactions/{}", id),
             None,
-            Some(serde_json::to_string(request)?),
+            Some(serde_json::to_string(&request)?),
         )
         .await
     }

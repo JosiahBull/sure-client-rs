@@ -12,10 +12,9 @@
 
 use clap::{Parser, Subcommand};
 use rust_decimal::Decimal;
-use sure_client_rs::models::account::{
-    AccountKind, CreateAccountData, CreateAccountRequest, UpdateAccountData, UpdateAccountRequest,
-};
+use sure_client_rs::models::account::AccountKind;
 use sure_client_rs::{AccountId, Auth, SureClient};
+use url::Url;
 
 #[derive(Parser)]
 #[command(name = "accounts")]
@@ -26,8 +25,8 @@ struct Cli {
     token: String,
 
     /// Base URL for the API (defaults to production)
-    #[arg(long, env = "SURE_BASE_URL", default_value = "https://api.sure.app")]
-    base_url: String,
+    #[arg(long, env = "SURE_BASE_URL", default_value = "http://localhost:3000")]
+    base_url: Url,
 
     #[command(subcommand)]
     command: Commands,
@@ -63,7 +62,7 @@ enum Commands {
 
         /// Initial balance (optional)
         #[arg(long)]
-        balance: Option<String>,
+        balance: Option<Decimal>,
 
         /// Currency code (optional, defaults to family currency)
         #[arg(long)]
@@ -79,7 +78,7 @@ enum Commands {
 
         /// Financial institution domain (optional)
         #[arg(long)]
-        institution_domain: Option<String>,
+        institution_domain: Option<Url>,
 
         /// Additional notes (optional)
         #[arg(long)]
@@ -97,7 +96,7 @@ enum Commands {
 
         /// New balance (optional)
         #[arg(long)]
-        balance: Option<String>,
+        balance: Option<Decimal>,
 
         /// New account subtype (optional)
         #[arg(long)]
@@ -109,7 +108,7 @@ enum Commands {
 
         /// New financial institution domain (optional)
         #[arg(long)]
-        institution_domain: Option<String>,
+        institution_domain: Option<Url>,
 
         /// New notes (optional)
         #[arg(long)]
@@ -121,11 +120,6 @@ enum Commands {
         #[arg(long)]
         id: String,
     },
-}
-
-fn parse_decimal(s: &str) -> anyhow::Result<Decimal> {
-    s.parse::<Decimal>()
-        .map_err(|e| anyhow::anyhow!("Invalid decimal value '{}': {}", s, e))
 }
 
 #[tokio::main]
@@ -207,27 +201,18 @@ async fn main() -> anyhow::Result<()> {
             institution_domain,
             notes,
         } => {
-            let balance = if let Some(balance_str) = &balance {
-                Some(parse_decimal(balance_str)?)
-            } else {
-                None
-            };
-
-            let request = CreateAccountRequest {
-                account: CreateAccountData {
-                    name,
-                    kind,
-                    balance,
-                    currency,
-                    subtype,
-                    institution_name,
-                    institution_domain,
-                    notes,
-                    accountable_attributes: None,
-                },
-            };
-
-            let account = client.create_account(&request).await?;
+            let account = client
+                .create_account()
+                .name(name)
+                .kind(kind)
+                .maybe_balance(balance)
+                .maybe_currency(currency)
+                .maybe_subtype(subtype)
+                .maybe_institution_name(institution_name)
+                .maybe_institution_domain(institution_domain)
+                .maybe_notes(notes)
+                .call()
+                .await?;
 
             println!("✓ Account created successfully!");
             println!();
@@ -257,25 +242,17 @@ async fn main() -> anyhow::Result<()> {
             let account_id =
                 AccountId::parse(&id).map_err(|e| anyhow::anyhow!("Invalid account ID: {}", e))?;
 
-            let balance = if let Some(balance_str) = &balance {
-                Some(parse_decimal(balance_str)?)
-            } else {
-                None
-            };
-
-            let request = UpdateAccountRequest {
-                account: UpdateAccountData {
-                    name,
-                    balance,
-                    subtype,
-                    institution_name,
-                    institution_domain,
-                    notes,
-                    accountable_attributes: None,
-                },
-            };
-
-            let account = client.update_account(&account_id, &request).await?;
+            let account = client
+                .update_account()
+                .id(&account_id)
+                .maybe_name(name)
+                .maybe_balance(balance)
+                .maybe_subtype(subtype)
+                .maybe_institution_name(institution_name)
+                .maybe_institution_domain(institution_domain)
+                .maybe_notes(notes)
+                .call()
+                .await?;
 
             println!("✓ Account updated successfully!");
             println!();

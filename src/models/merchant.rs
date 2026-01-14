@@ -40,7 +40,7 @@ pub struct MerchantCollection {
 /// Request to create a new merchant
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct CreateMerchantRequest {
+pub(crate) struct CreateMerchantRequest {
     /// Merchant data
     pub merchant: CreateMerchantData,
 }
@@ -48,7 +48,7 @@ pub struct CreateMerchantRequest {
 /// Data for creating a new merchant
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct CreateMerchantData {
+pub(crate) struct CreateMerchantData {
     /// Merchant name
     pub name: String,
     /// Merchant color (hex code)
@@ -59,7 +59,7 @@ pub struct CreateMerchantData {
 /// Request to update an existing merchant
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct UpdateMerchantRequest {
+pub(crate) struct UpdateMerchantRequest {
     /// Merchant data
     pub merchant: UpdateMerchantData,
 }
@@ -67,7 +67,7 @@ pub struct UpdateMerchantRequest {
 /// Data for updating a merchant
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct UpdateMerchantData {
+pub(crate) struct UpdateMerchantData {
     /// Merchant name
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,

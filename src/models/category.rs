@@ -22,6 +22,46 @@ impl fmt::Display for Classification {
     }
 }
 
+/// Error returned when parsing a `Classification` from a string fails.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParseClassificationError(String);
+
+impl fmt::Display for ParseClassificationError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Invalid classification: {}", self.0)
+    }
+}
+
+impl std::error::Error for ParseClassificationError {}
+
+impl std::str::FromStr for Classification {
+    type Err = ParseClassificationError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "income" => Ok(Classification::Income),
+            "expense" => Ok(Classification::Expense),
+            _ => Err(ParseClassificationError(s.to_string())),
+        }
+    }
+}
+
+impl TryFrom<&str> for Classification {
+    type Error = ParseClassificationError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+
+impl TryFrom<String> for Classification {
+    type Error = ParseClassificationError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+
 /// Basic category information
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
@@ -84,7 +124,7 @@ pub struct CategoryCollection {
 /// Request to create a new category
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct CreateCategoryRequest {
+pub(crate) struct CreateCategoryRequest {
     /// Category data
     pub category: CreateCategoryData,
 }
@@ -92,7 +132,7 @@ pub struct CreateCategoryRequest {
 /// Data for creating a new category
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct CreateCategoryData {
+pub(crate) struct CreateCategoryData {
     /// Category name
     pub name: String,
     /// Classification (income or expense)
@@ -110,7 +150,7 @@ pub struct CreateCategoryData {
 /// Request to update an existing category
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct UpdateCategoryRequest {
+pub(crate) struct UpdateCategoryRequest {
     /// Category data
     pub category: UpdateCategoryData,
 }
@@ -118,7 +158,7 @@ pub struct UpdateCategoryRequest {
 /// Data for updating a category
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct UpdateCategoryData {
+pub(crate) struct UpdateCategoryData {
     /// Category name
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,

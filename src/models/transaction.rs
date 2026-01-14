@@ -90,6 +90,55 @@ pub enum TransactionNature {
     Expense,
 }
 
+impl std::fmt::Display for TransactionNature {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TransactionNature::Income => write!(f, "income"),
+            TransactionNature::Expense => write!(f, "expense"),
+        }
+    }
+}
+
+/// Error returned when parsing a `TransactionNature` from a string fails.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParseTransactionNatureError(String);
+
+impl std::fmt::Display for ParseTransactionNatureError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Invalid transaction nature: {}", self.0)
+    }
+}
+
+impl std::error::Error for ParseTransactionNatureError {}
+
+impl std::str::FromStr for TransactionNature {
+    type Err = ParseTransactionNatureError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "income" | "inflow" => Ok(TransactionNature::Income),
+            "expense" | "outflow" => Ok(TransactionNature::Expense),
+            _ => Err(ParseTransactionNatureError(s.to_string())),
+        }
+    }
+}
+
+impl TryFrom<&str> for TransactionNature {
+    type Error = ParseTransactionNatureError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+
+impl TryFrom<String> for TransactionNature {
+    type Error = ParseTransactionNatureError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+
 /// Transaction filter type
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -107,6 +156,46 @@ impl std::fmt::Display for TransactionType {
             Self::Expense => "expense",
         };
         write!(f, "{}", s)
+    }
+}
+
+/// Error returned when parsing a `TransactionType` from a string fails.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParseTransactionTypeError(String);
+
+impl std::fmt::Display for ParseTransactionTypeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Invalid transaction type: {}", self.0)
+    }
+}
+
+impl std::error::Error for ParseTransactionTypeError {}
+
+impl std::str::FromStr for TransactionType {
+    type Err = ParseTransactionTypeError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "income" => Ok(TransactionType::Income),
+            "expense" => Ok(TransactionType::Expense),
+            _ => Err(ParseTransactionTypeError(s.to_string())),
+        }
+    }
+}
+
+impl TryFrom<&str> for TransactionType {
+    type Error = ParseTransactionTypeError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+
+impl TryFrom<String> for TransactionType {
+    type Error = ParseTransactionTypeError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        value.parse()
     }
 }
 
@@ -161,7 +250,7 @@ pub struct TransactionCollection {
 /// Request body for creating a transaction
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct CreateTransactionRequest {
+pub(crate) struct CreateTransactionRequest {
     /// Transaction data
     pub transaction: CreateTransactionData,
 }
@@ -169,7 +258,7 @@ pub struct CreateTransactionRequest {
 /// Transaction data for creation
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct CreateTransactionData {
+pub(crate) struct CreateTransactionData {
     /// Account ID (required)
     pub account_id: AccountId,
     /// Transaction date (required)
@@ -202,7 +291,7 @@ pub struct CreateTransactionData {
 /// Request body for updating a transaction
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct UpdateTransactionRequest {
+pub(crate) struct UpdateTransactionRequest {
     /// Transaction data
     pub transaction: UpdateTransactionData,
 }
@@ -210,7 +299,7 @@ pub struct UpdateTransactionRequest {
 /// Transaction data for updates
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct UpdateTransactionData {
+pub(crate) struct UpdateTransactionData {
     /// Transaction date
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[serde(with = "crate::serde::naive_date_option")]

@@ -18,6 +18,60 @@ pub enum RateLimitTier {
     Unknown,
 }
 
+impl std::fmt::Display for RateLimitTier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            RateLimitTier::Standard => write!(f, "standard"),
+            RateLimitTier::Premium => write!(f, "premium"),
+            RateLimitTier::Enterprise => write!(f, "enterprise"),
+            RateLimitTier::Noop => write!(f, "noop"),
+            RateLimitTier::Unknown => write!(f, "unknown"),
+        }
+    }
+}
+
+/// Error returned when parsing a `RateLimitTier` from a string fails.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParseRateLimitTierError(String);
+
+impl std::fmt::Display for ParseRateLimitTierError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Invalid rate limit tier: {}", self.0)
+    }
+}
+
+impl std::error::Error for ParseRateLimitTierError {}
+
+impl std::str::FromStr for RateLimitTier {
+    type Err = ParseRateLimitTierError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "standard" => Ok(RateLimitTier::Standard),
+            "premium" => Ok(RateLimitTier::Premium),
+            "enterprise" => Ok(RateLimitTier::Enterprise),
+            "noop" => Ok(RateLimitTier::Noop),
+            _ => Ok(RateLimitTier::Unknown),
+        }
+    }
+}
+
+impl TryFrom<&str> for RateLimitTier {
+    type Error = ParseRateLimitTierError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+
+impl TryFrom<String> for RateLimitTier {
+    type Error = ParseRateLimitTierError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+
 /// API key information
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
@@ -69,6 +123,53 @@ pub struct UsageApiKeyResponse {
 pub enum AuthenticationMethod {
     /// OAuth authentication
     OAuth,
+}
+
+impl std::fmt::Display for AuthenticationMethod {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AuthenticationMethod::OAuth => write!(f, "oauth"),
+        }
+    }
+}
+
+/// Error returned when parsing an `AuthenticationMethod` from a string fails.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParseAuthenticationMethodError(String);
+
+impl std::fmt::Display for ParseAuthenticationMethodError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Invalid authentication method: {}", self.0)
+    }
+}
+
+impl std::error::Error for ParseAuthenticationMethodError {}
+
+impl std::str::FromStr for AuthenticationMethod {
+    type Err = ParseAuthenticationMethodError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "oauth" => Ok(AuthenticationMethod::OAuth),
+            _ => Err(ParseAuthenticationMethodError(s.to_string())),
+        }
+    }
+}
+
+impl TryFrom<&str> for AuthenticationMethod {
+    type Error = ParseAuthenticationMethodError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+
+impl TryFrom<String> for AuthenticationMethod {
+    type Error = ParseAuthenticationMethodError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        value.parse()
+    }
 }
 
 /// Usage response for OAuth authentication

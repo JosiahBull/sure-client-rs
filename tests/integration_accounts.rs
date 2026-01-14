@@ -5,17 +5,17 @@
 
 use chrono::Utc;
 use rust_decimal::Decimal;
-use sure_client_rs::models::account::{
-    AccountKind, CreateAccountData, CreateAccountRequest, UpdateAccountData, UpdateAccountRequest,
-};
+use sure_client_rs::models::account::AccountKind;
 use sure_client_rs::{Auth, SureClient};
 
 /// Helper function to create a test client
 fn create_test_client() -> SureClient {
     dotenvy::dotenv().ok();
 
-    let base_url =
-        std::env::var("SURE_BASE_URL").unwrap_or_else(|_| "http://localhost:3000".to_string());
+    let base_url = std::env::var("SURE_BASE_URL")
+        .unwrap_or_else(|_| "http://localhost:3000".to_string())
+        .parse()
+        .unwrap();
     let token = std::env::var("SURE_TOKEN").expect("SURE_TOKEN must be set in .env file");
 
     SureClient::new(reqwest::Client::new(), Auth::api_key(token), base_url)
@@ -27,22 +27,17 @@ async fn test_account_crud_lifecycle() {
     let timestamp = Utc::now().timestamp();
 
     // Create an account
-    let create_request = CreateAccountRequest {
-        account: CreateAccountData {
-            name: format!("Test Account {}", timestamp),
-            kind: AccountKind::Depository,
-            balance: Some(Decimal::new(100000, 2)), // $1,000.00
-            currency: Some("NZD".to_string()),
-            subtype: Some("checking".to_string()),
-            institution_name: Some("Test Bank".to_string()),
-            institution_domain: Some("testbank.com".to_string()),
-            notes: Some("Integration test account".to_string()),
-            accountable_attributes: None,
-        },
-    };
-
     let created = client
-        .create_account(&create_request)
+        .create_account()
+        .name(format!("Test Account {}", timestamp))
+        .kind(AccountKind::Depository)
+        .maybe_balance(Some(Decimal::new(100000, 2))) // $1,000.00
+        .maybe_currency(Some("NZD".to_string()))
+        .maybe_subtype(Some("checking".to_string()))
+        .maybe_institution_name(Some("Test Bank".to_string()))
+        .maybe_institution_domain(Some("http://www.testbank.com".parse().unwrap()))
+        .maybe_notes(Some("Integration test account".to_string()))
+        .call()
         .await
         .expect("Failed to create account");
 
@@ -63,17 +58,13 @@ async fn test_account_crud_lifecycle() {
     println!("✓ Fetched account: {}", fetched.name);
 
     // Update the account
-    let update_request = UpdateAccountRequest {
-        account: UpdateAccountData {
-            name: Some(format!("Updated Test Account {}", timestamp)),
-            notes: Some("Updated during integration test".to_string()),
-            subtype: Some("savings".to_string()),
-            ..Default::default()
-        },
-    };
-
     let updated = client
-        .update_account(&created.id, &update_request)
+        .update_account()
+        .id(&created.id)
+        .maybe_name(Some(format!("Updated Test Account {}", timestamp)))
+        .maybe_notes(Some("Updated during integration test".to_string()))
+        .maybe_subtype(Some("savings".to_string()))
+        .call()
         .await
         .expect("Failed to update account");
 
@@ -99,7 +90,7 @@ async fn test_account_crud_lifecycle() {
     println!("✓ Listed {} accounts", accounts.items.accounts.len());
 
     // Delete the account
-    let delete_response = client
+    let _delete_response = client
         .delete_account(&created.id)
         .await
         .expect("Failed to delete account");
@@ -169,22 +160,13 @@ async fn test_create_account_minimal() {
 
     // Create account with minimal required fields
     // Note: balance is required by the API
-    let create_request = CreateAccountRequest {
-        account: CreateAccountData {
-            name: format!("Minimal Test Account {}", timestamp),
-            kind: AccountKind::OtherAsset,
-            balance: Some(Decimal::new(0, 2)), // $0.00 - balance is required
-            currency: Some("NZD".to_string()), // currency is also required
-            subtype: None,
-            institution_name: None,
-            institution_domain: None,
-            notes: None,
-            accountable_attributes: None,
-        },
-    };
-
     let created = client
-        .create_account(&create_request)
+        .create_account()
+        .name(format!("Minimal Test Account {}", timestamp))
+        .kind(AccountKind::OtherAsset)
+        .maybe_balance(Some(Decimal::new(0, 2))) // $0.00 - balance is required
+        .maybe_currency(Some("NZD".to_string())) // currency is also required
+        .call()
         .await
         .expect("Failed to create minimal account");
 
@@ -205,37 +187,24 @@ async fn test_update_account_balance() {
     let timestamp = Utc::now().timestamp();
 
     // Create account
-    let create_request = CreateAccountRequest {
-        account: CreateAccountData {
-            name: format!("Balance Test Account {}", timestamp),
-            kind: AccountKind::Depository,
-            balance: Some(Decimal::new(50000, 2)), // $500.00
-            currency: Some("NZD".to_string()),
-            subtype: None,
-            institution_name: None,
-            institution_domain: None,
-            notes: None,
-            accountable_attributes: None,
-        },
-    };
-
     let created = client
-        .create_account(&create_request)
+        .create_account()
+        .name(format!("Balance Test Account {}", timestamp))
+        .kind(AccountKind::Depository)
+        .maybe_balance(Some(Decimal::new(50000, 2))) // $500.00
+        .maybe_currency(Some("NZD".to_string()))
+        .call()
         .await
         .expect("Failed to create account");
 
     println!("✓ Created account with initial balance");
 
     // Update balance
-    let update_request = UpdateAccountRequest {
-        account: UpdateAccountData {
-            balance: Some(Decimal::new(75000, 2)), // $750.00
-            ..Default::default()
-        },
-    };
-
     let _updated = client
-        .update_account(&created.id, &update_request)
+        .update_account()
+        .id(&created.id)
+        .maybe_balance(Some(Decimal::new(75000, 2))) // $750.00
+        .call()
         .await
         .expect("Failed to update balance");
 

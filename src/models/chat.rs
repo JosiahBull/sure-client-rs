@@ -31,6 +31,55 @@ pub enum MessageType {
     AssistantMessage,
 }
 
+impl std::fmt::Display for MessageType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MessageType::UserMessage => write!(f, "user_message"),
+            MessageType::AssistantMessage => write!(f, "assistant_message"),
+        }
+    }
+}
+
+/// Error returned when parsing a `MessageType` from a string fails.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParseMessageTypeError(String);
+
+impl std::fmt::Display for ParseMessageTypeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Invalid message type: {}", self.0)
+    }
+}
+
+impl std::error::Error for ParseMessageTypeError {}
+
+impl std::str::FromStr for MessageType {
+    type Err = ParseMessageTypeError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "user_message" => Ok(MessageType::UserMessage),
+            "assistant_message" => Ok(MessageType::AssistantMessage),
+            _ => Err(ParseMessageTypeError(s.to_string())),
+        }
+    }
+}
+
+impl TryFrom<&str> for MessageType {
+    type Error = ParseMessageTypeError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+
+impl TryFrom<String> for MessageType {
+    type Error = ParseMessageTypeError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+
 /// Message role
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -39,6 +88,55 @@ pub enum MessageRole {
     User,
     /// Assistant role
     Assistant,
+}
+
+impl std::fmt::Display for MessageRole {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MessageRole::User => write!(f, "user"),
+            MessageRole::Assistant => write!(f, "assistant"),
+        }
+    }
+}
+
+/// Error returned when parsing a `MessageRole` from a string fails.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParseMessageRoleError(String);
+
+impl std::fmt::Display for ParseMessageRoleError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Invalid message role: {}", self.0)
+    }
+}
+
+impl std::error::Error for ParseMessageRoleError {}
+
+impl std::str::FromStr for MessageRole {
+    type Err = ParseMessageRoleError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "user" => Ok(MessageRole::User),
+            "assistant" => Ok(MessageRole::Assistant),
+            _ => Err(ParseMessageRoleError(s.to_string())),
+        }
+    }
+}
+
+impl TryFrom<&str> for MessageRole {
+    type Error = ParseMessageRoleError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+
+impl TryFrom<String> for MessageRole {
+    type Error = ParseMessageRoleError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        value.parse()
+    }
 }
 
 /// Message in a chat
@@ -76,6 +174,57 @@ pub enum AiResponseStatus {
     Complete,
     /// Failed
     Failed,
+}
+
+impl std::fmt::Display for AiResponseStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AiResponseStatus::Pending => write!(f, "pending"),
+            AiResponseStatus::Complete => write!(f, "complete"),
+            AiResponseStatus::Failed => write!(f, "failed"),
+        }
+    }
+}
+
+/// Error returned when parsing an `AiResponseStatus` from a string fails.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParseAiResponseStatusError(String);
+
+impl std::fmt::Display for ParseAiResponseStatusError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Invalid AI response status: {}", self.0)
+    }
+}
+
+impl std::error::Error for ParseAiResponseStatusError {}
+
+impl std::str::FromStr for AiResponseStatus {
+    type Err = ParseAiResponseStatusError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "pending" => Ok(AiResponseStatus::Pending),
+            "complete" => Ok(AiResponseStatus::Complete),
+            "failed" => Ok(AiResponseStatus::Failed),
+            _ => Err(ParseAiResponseStatusError(s.to_string())),
+        }
+    }
+}
+
+impl TryFrom<&str> for AiResponseStatus {
+    type Error = ParseAiResponseStatusError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        value.parse()
+    }
+}
+
+impl TryFrom<String> for AiResponseStatus {
+    type Error = ParseAiResponseStatusError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        value.parse()
+    }
 }
 
 /// Message response with additional fields
@@ -193,7 +342,7 @@ pub struct RetryResponse {
 /// Create chat request
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct CreateChatRequest {
+pub(crate) struct CreateChatRequest {
     /// Chat title
     pub title: String,
     /// Optional initial message
@@ -207,7 +356,7 @@ pub struct CreateChatRequest {
 /// Update chat request
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct UpdateChatRequest {
+pub(crate) struct UpdateChatRequest {
     /// Updated chat title
     pub title: String,
 }
@@ -215,7 +364,7 @@ pub struct UpdateChatRequest {
 /// Create message request
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct CreateMessageRequest {
+pub(crate) struct CreateMessageRequest {
     /// Message content
     pub content: String,
     /// Optional model identifier
