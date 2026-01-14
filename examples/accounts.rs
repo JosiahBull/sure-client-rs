@@ -60,9 +60,9 @@ enum Commands {
         #[arg(long, alias = "type")]
         kind: AccountKind,
 
-        /// Initial balance (optional)
+        /// Initial balance
         #[arg(long)]
-        balance: Option<Decimal>,
+        balance: Decimal,
 
         /// Currency code (optional, defaults to family currency)
         #[arg(long)]
@@ -205,7 +205,7 @@ async fn main() -> anyhow::Result<()> {
                 .create_account()
                 .name(name)
                 .kind(kind)
-                .maybe_balance(balance)
+                .balance(balance)
                 .maybe_currency(currency)
                 .maybe_subtype(subtype)
                 .maybe_institution_name(institution_name)

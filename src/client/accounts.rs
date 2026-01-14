@@ -148,7 +148,7 @@ impl SureClient {
         &self,
         name: String,
         kind: AccountKind,
-        balance: Option<Decimal>,
+        balance: Decimal,
         currency: Option<String>,
         subtype: Option<String>,
         institution_name: Option<String>,

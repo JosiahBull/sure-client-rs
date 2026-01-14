@@ -165,8 +165,7 @@ pub(crate) struct CreateAccountData {
     #[serde(rename = "accountable_type")]
     pub kind: AccountKind,
     /// Initial account balance
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub balance: Option<Decimal>,
+    pub balance: Decimal,
     /// Currency code (defaults to family currency if not provided)
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub currency: Option<String>,

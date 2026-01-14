@@ -31,7 +31,7 @@ async fn test_account_crud_lifecycle() {
         .create_account()
         .name(format!("Test Account {}", timestamp))
         .kind(AccountKind::Depository)
-        .maybe_balance(Some(Decimal::new(100000, 2))) // $1,000.00
+        .balance(Decimal::new(100000, 2)) // $1,000.00
         .maybe_currency(Some("NZD".to_string()))
         .maybe_subtype(Some("checking".to_string()))
         .maybe_institution_name(Some("Test Bank".to_string()))
@@ -164,7 +164,7 @@ async fn test_create_account_minimal() {
         .create_account()
         .name(format!("Minimal Test Account {}", timestamp))
         .kind(AccountKind::OtherAsset)
-        .maybe_balance(Some(Decimal::new(0, 2))) // $0.00 - balance is required
+        .balance(Decimal::new(0, 2)) // $0.00 - balance is required
         .maybe_currency(Some("NZD".to_string())) // currency is also required
         .call()
         .await
@@ -191,7 +191,7 @@ async fn test_update_account_balance() {
         .create_account()
         .name(format!("Balance Test Account {}", timestamp))
         .kind(AccountKind::Depository)
-        .maybe_balance(Some(Decimal::new(50000, 2))) // $500.00
+        .balance(Decimal::new(50000, 2)) // $500.00
         .maybe_currency(Some("NZD".to_string()))
         .call()
         .await
