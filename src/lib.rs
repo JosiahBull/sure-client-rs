@@ -203,7 +203,7 @@
 mod client;
 mod error;
 pub mod models;
-pub mod serde;
+pub(crate) mod serde;
 mod types;
 
 // Public re-exports

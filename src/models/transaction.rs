@@ -93,8 +93,8 @@ pub enum TransactionNature {
 impl std::fmt::Display for TransactionNature {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            TransactionNature::Income => write!(f, "income"),
-            TransactionNature::Expense => write!(f, "expense"),
+            Self::Income => write!(f, "income"),
+            Self::Expense => write!(f, "expense"),
         }
     }
 }
@@ -116,8 +116,8 @@ impl std::str::FromStr for TransactionNature {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "income" | "inflow" => Ok(TransactionNature::Income),
-            "expense" | "outflow" => Ok(TransactionNature::Expense),
+            "income" | "inflow" => Ok(Self::Income),
+            "expense" | "outflow" => Ok(Self::Expense),
             _ => Err(ParseTransactionNatureError(s.to_string())),
         }
     }
@@ -176,8 +176,8 @@ impl std::str::FromStr for TransactionType {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "income" => Ok(TransactionType::Income),
-            "expense" => Ok(TransactionType::Expense),
+            "income" => Ok(Self::Income),
+            "expense" => Ok(Self::Expense),
             _ => Err(ParseTransactionTypeError(s.to_string())),
         }
     }

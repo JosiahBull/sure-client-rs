@@ -21,11 +21,11 @@ pub enum RateLimitTier {
 impl std::fmt::Display for RateLimitTier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            RateLimitTier::Standard => write!(f, "standard"),
-            RateLimitTier::Premium => write!(f, "premium"),
-            RateLimitTier::Enterprise => write!(f, "enterprise"),
-            RateLimitTier::Noop => write!(f, "noop"),
-            RateLimitTier::Unknown => write!(f, "unknown"),
+            Self::Standard => write!(f, "standard"),
+            Self::Premium => write!(f, "premium"),
+            Self::Enterprise => write!(f, "enterprise"),
+            Self::Noop => write!(f, "noop"),
+            Self::Unknown => write!(f, "unknown"),
         }
     }
 }
@@ -47,11 +47,11 @@ impl std::str::FromStr for RateLimitTier {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "standard" => Ok(RateLimitTier::Standard),
-            "premium" => Ok(RateLimitTier::Premium),
-            "enterprise" => Ok(RateLimitTier::Enterprise),
-            "noop" => Ok(RateLimitTier::Noop),
-            _ => Ok(RateLimitTier::Unknown),
+            "standard" => Ok(Self::Standard),
+            "premium" => Ok(Self::Premium),
+            "enterprise" => Ok(Self::Enterprise),
+            "noop" => Ok(Self::Noop),
+            _ => Ok(Self::Unknown),
         }
     }
 }
@@ -128,7 +128,7 @@ pub enum AuthenticationMethod {
 impl std::fmt::Display for AuthenticationMethod {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AuthenticationMethod::OAuth => write!(f, "oauth"),
+            Self::OAuth => write!(f, "oauth"),
         }
     }
 }
@@ -150,7 +150,7 @@ impl std::str::FromStr for AuthenticationMethod {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "oauth" => Ok(AuthenticationMethod::OAuth),
+            "oauth" => Ok(Self::OAuth),
             _ => Err(ParseAuthenticationMethodError(s.to_string())),
         }
     }

@@ -1,12 +1,17 @@
 //! Custom serde modules for handling API-specific serialization
 
+#![allow(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "serde function signatures"
+)]
+
 /// Serialize/deserialize NaiveDate as YYYY-MM-DD format
-pub(crate) mod naive_date {
+pub mod naive_date {
     use chrono::NaiveDate;
     use serde::{Deserialize, Deserializer, Serializer};
 
     /// Serialize a NaiveDate as YYYY-MM-DD
-    pub(crate) fn serialize<S>(date: &NaiveDate, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<S>(date: &NaiveDate, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -14,7 +19,7 @@ pub(crate) mod naive_date {
     }
 
     /// Deserialize a NaiveDate from YYYY-MM-DD
-    pub(crate) fn deserialize<'de, D>(deserializer: D) -> Result<NaiveDate, D::Error>
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<NaiveDate, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -24,12 +29,12 @@ pub(crate) mod naive_date {
 }
 
 /// Serialize/deserialize Option<NaiveDate> as YYYY-MM-DD format
-pub(crate) mod naive_date_option {
+pub mod naive_date_option {
     use chrono::NaiveDate;
     use serde::{Deserialize, Deserializer, Serializer};
 
     /// Serialize an Option<NaiveDate> as YYYY-MM-DD
-    pub(crate) fn serialize<S>(date: &Option<NaiveDate>, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<S>(date: &Option<NaiveDate>, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -40,7 +45,7 @@ pub(crate) mod naive_date_option {
     }
 
     /// Deserialize an Option<NaiveDate> from YYYY-MM-DD
-    pub(crate) fn deserialize<'de, D>(deserializer: D) -> Result<Option<NaiveDate>, D::Error>
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<NaiveDate>, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -57,18 +62,18 @@ pub(crate) mod naive_date_option {
 }
 
 /// Serialize/deserialize Duration as seconds (i64)
-pub(crate) mod duration_from_secs {
+pub mod duration_from_secs {
     use serde::{self, Deserialize, Deserializer, Serializer};
     use std::time::Duration;
 
-    pub(crate) fn serialize<S>(duration: &Duration, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<S>(duration: &Duration, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
         serializer.serialize_i64(duration.as_secs() as i64)
     }
 
-    pub(crate) fn deserialize<'de, D>(deserializer: D) -> Result<Duration, D::Error>
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Duration, D::Error>
     where
         D: Deserializer<'de>,
     {

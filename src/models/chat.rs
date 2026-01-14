@@ -34,8 +34,8 @@ pub enum MessageType {
 impl std::fmt::Display for MessageType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            MessageType::UserMessage => write!(f, "user_message"),
-            MessageType::AssistantMessage => write!(f, "assistant_message"),
+            Self::UserMessage => write!(f, "user_message"),
+            Self::AssistantMessage => write!(f, "assistant_message"),
         }
     }
 }
@@ -57,8 +57,8 @@ impl std::str::FromStr for MessageType {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "user_message" => Ok(MessageType::UserMessage),
-            "assistant_message" => Ok(MessageType::AssistantMessage),
+            "user_message" => Ok(Self::UserMessage),
+            "assistant_message" => Ok(Self::AssistantMessage),
             _ => Err(ParseMessageTypeError(s.to_string())),
         }
     }
@@ -93,8 +93,8 @@ pub enum MessageRole {
 impl std::fmt::Display for MessageRole {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            MessageRole::User => write!(f, "user"),
-            MessageRole::Assistant => write!(f, "assistant"),
+            Self::User => write!(f, "user"),
+            Self::Assistant => write!(f, "assistant"),
         }
     }
 }
@@ -116,8 +116,8 @@ impl std::str::FromStr for MessageRole {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "user" => Ok(MessageRole::User),
-            "assistant" => Ok(MessageRole::Assistant),
+            "user" => Ok(Self::User),
+            "assistant" => Ok(Self::Assistant),
             _ => Err(ParseMessageRoleError(s.to_string())),
         }
     }
@@ -179,9 +179,9 @@ pub enum AiResponseStatus {
 impl std::fmt::Display for AiResponseStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AiResponseStatus::Pending => write!(f, "pending"),
-            AiResponseStatus::Complete => write!(f, "complete"),
-            AiResponseStatus::Failed => write!(f, "failed"),
+            Self::Pending => write!(f, "pending"),
+            Self::Complete => write!(f, "complete"),
+            Self::Failed => write!(f, "failed"),
         }
     }
 }
@@ -203,9 +203,9 @@ impl std::str::FromStr for AiResponseStatus {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "pending" => Ok(AiResponseStatus::Pending),
-            "complete" => Ok(AiResponseStatus::Complete),
-            "failed" => Ok(AiResponseStatus::Failed),
+            "pending" => Ok(Self::Pending),
+            "complete" => Ok(Self::Complete),
+            "failed" => Ok(Self::Failed),
             _ => Err(ParseAiResponseStatusError(s.to_string())),
         }
     }

@@ -34,13 +34,13 @@ pub enum AccountKind {
 impl std::fmt::Display for AccountKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
-            AccountKind::Depository => "Depository",
-            AccountKind::CreditCard => "CreditCard",
-            AccountKind::Investment => "Investment",
-            AccountKind::Property => "Property",
-            AccountKind::Loan => "Loan",
-            AccountKind::OtherAsset => "OtherAsset",
-            AccountKind::OtherLiability => "OtherLiability",
+            Self::Depository => "Depository",
+            Self::CreditCard => "CreditCard",
+            Self::Investment => "Investment",
+            Self::Property => "Property",
+            Self::Loan => "Loan",
+            Self::OtherAsset => "OtherAsset",
+            Self::OtherLiability => "OtherLiability",
         };
         write!(f, "{}", s)
     }
@@ -63,13 +63,13 @@ impl std::str::FromStr for AccountKind {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "Depository" => Ok(AccountKind::Depository),
-            "CreditCard" => Ok(AccountKind::CreditCard),
-            "Investment" => Ok(AccountKind::Investment),
-            "Property" => Ok(AccountKind::Property),
-            "Loan" => Ok(AccountKind::Loan),
-            "OtherAsset" => Ok(AccountKind::OtherAsset),
-            "OtherLiability" => Ok(AccountKind::OtherLiability),
+            "Depository" => Ok(Self::Depository),
+            "CreditCard" => Ok(Self::CreditCard),
+            "Investment" => Ok(Self::Investment),
+            "Property" => Ok(Self::Property),
+            "Loan" => Ok(Self::Loan),
+            "OtherAsset" => Ok(Self::OtherAsset),
+            "OtherLiability" => Ok(Self::OtherLiability),
             _ => Err(ParseAccountKindError(s.to_string())),
         }
     }

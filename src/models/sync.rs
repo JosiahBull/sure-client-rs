@@ -19,10 +19,10 @@ pub enum SyncStatus {
 impl std::fmt::Display for SyncStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SyncStatus::Pending => write!(f, "pending"),
-            SyncStatus::Syncing => write!(f, "syncing"),
-            SyncStatus::Completed => write!(f, "completed"),
-            SyncStatus::Failed => write!(f, "failed"),
+            Self::Pending => write!(f, "pending"),
+            Self::Syncing => write!(f, "syncing"),
+            Self::Completed => write!(f, "completed"),
+            Self::Failed => write!(f, "failed"),
         }
     }
 }
@@ -44,10 +44,10 @@ impl std::str::FromStr for SyncStatus {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "pending" => Ok(SyncStatus::Pending),
-            "syncing" => Ok(SyncStatus::Syncing),
-            "completed" => Ok(SyncStatus::Completed),
-            "failed" => Ok(SyncStatus::Failed),
+            "pending" => Ok(Self::Pending),
+            "syncing" => Ok(Self::Syncing),
+            "completed" => Ok(Self::Completed),
+            "failed" => Ok(Self::Failed),
             _ => Err(ParseSyncStatusError(s.to_string())),
         }
     }

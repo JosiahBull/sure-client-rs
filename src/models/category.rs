@@ -39,8 +39,8 @@ impl std::str::FromStr for Classification {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "income" => Ok(Classification::Income),
-            "expense" => Ok(Classification::Expense),
+            "income" => Ok(Self::Income),
+            "expense" => Ok(Self::Expense),
             _ => Err(ParseClassificationError(s.to_string())),
         }
     }

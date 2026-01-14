@@ -13,7 +13,7 @@ pub enum TokenType {
 impl std::fmt::Display for TokenType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            TokenType::Bearer => write!(f, "Bearer"),
+            Self::Bearer => write!(f, "Bearer"),
         }
     }
 }
@@ -35,7 +35,7 @@ impl std::str::FromStr for TokenType {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "Bearer" => Ok(TokenType::Bearer),
+            "Bearer" => Ok(Self::Bearer),
             _ => Err(ParseTokenTypeError(s.to_string())),
         }
     }
