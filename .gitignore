@@ -1,0 +1,7 @@
+# Rust build artifacts
+/target
+.DS_Store
+.env
+
+# AI stuff
+CLAUDE.md

@@ -1,0 +1,149 @@
+use crate::serde::duration_from_secs;
+use serde::{Deserialize, Serialize};
+use std::time::Duration;
+use uuid::Uuid;
+
+/// Token type enum
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum TokenType {
+    /// Bearer token
+    Bearer,
+}
+
+/// Base authentication token response
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AuthTokenResponse {
+    /// Access token
+    pub access_token: String,
+    /// Refresh token
+    pub refresh_token: String,
+    /// Token type (Bearer)
+    pub token_type: TokenType,
+    /// Token expiration time
+    #[serde(with = "duration_from_secs")]
+    pub expires_in: Duration,
+    /// Unix timestamp of token creation
+    #[serde(with = "duration_from_secs")]
+    pub created_at: Duration,
+}
+
+/// User information
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct User {
+    /// User ID
+    pub id: Uuid,
+    /// Email address
+    pub email: String,
+    /// First name
+    pub first_name: String,
+    /// Last name
+    pub last_name: String,
+}
+
+/// Sign up response
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AuthSignupResponse {
+    /// Access token
+    pub access_token: String,
+    /// Refresh token
+    pub refresh_token: String,
+    /// Token type (Bearer)
+    pub token_type: TokenType,
+    /// Token expiration time
+    #[serde(with = "duration_from_secs")]
+    pub expires_in: Duration,
+    /// Unix timestamp of token creation
+    #[serde(with = "duration_from_secs")]
+    pub created_at: Duration,
+    /// User information
+    pub user: User,
+}
+
+/// Login response
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AuthLoginResponse {
+    /// Access token
+    pub access_token: String,
+    /// Refresh token
+    pub refresh_token: String,
+    /// Token type (Bearer)
+    pub token_type: TokenType,
+    /// Token expiration time
+    #[serde(with = "duration_from_secs")]
+    pub expires_in: Duration,
+    /// Unix timestamp of token creation
+    #[serde(with = "duration_from_secs")]
+    pub created_at: Duration,
+    /// User information
+    pub user: User,
+}
+
+/// Device information for authentication
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DeviceInfo {
+    /// Device identifier
+    pub device_id: String,
+    /// Device name
+    pub device_name: String,
+    /// Device type (e.g., "ios", "android", "web")
+    pub device_type: String,
+    /// OS version
+    pub os_version: String,
+    /// App version
+    pub app_version: String,
+}
+
+/// Sign up request
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SignupRequest {
+    /// User information
+    pub user: SignupUserData,
+    /// Invite code (required if invite codes are enabled)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub invite_code: Option<String>,
+    /// Device information
+    pub device: DeviceInfo,
+}
+
+/// User data for sign up
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SignupUserData {
+    /// Email address
+    pub email: String,
+    /// Password (must be at least 8 characters with uppercase, lowercase, number, and special character)
+    pub password: String,
+    /// First name
+    pub first_name: String,
+    /// Last name
+    pub last_name: String,
+}
+
+/// Login request
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct LoginRequest {
+    /// Email address
+    pub email: String,
+    /// Password
+    pub password: String,
+    /// OTP code (required if user has MFA enabled)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub otp_code: Option<String>,
+    /// Device information
+    pub device: DeviceInfo,
+}
+
+/// Refresh token request
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RefreshTokenRequest {
+    /// Refresh token
+    pub refresh_token: String,
+    /// Device information
+    pub device: RefreshDeviceInfo,
+}
+
+/// Device information for refresh request
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RefreshDeviceInfo {
+    /// Device identifier
+    pub device_id: String,
+}
