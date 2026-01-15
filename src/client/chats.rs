@@ -1,10 +1,10 @@
+use crate::ApiError;
 use crate::error::ApiResult;
+use crate::models::PaginatedResponse;
 use crate::models::chat::{
     ChatCollection, ChatDetail, CreateChatRequest, CreateMessageRequest, MessageResponse,
     RetryResponse, UpdateChatRequest,
 };
-use crate::models::PaginatedResponse;
-use crate::ApiError;
 use bon::bon;
 use reqwest::Method;
 use std::collections::HashMap;

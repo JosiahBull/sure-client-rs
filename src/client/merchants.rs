@@ -3,11 +3,11 @@ use reqwest::Method;
 
 use crate::ApiError;
 use crate::error::ApiResult;
-use crate::models::{DeleteResponse, PaginatedResponse};
 use crate::models::merchant::{
     CreateMerchantData, CreateMerchantRequest, MerchantCollection, MerchantDetail,
     UpdateMerchantData, UpdateMerchantRequest,
 };
+use crate::models::{DeleteResponse, PaginatedResponse};
 use crate::types::MerchantId;
 use std::collections::HashMap;
 
