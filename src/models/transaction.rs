@@ -16,7 +16,7 @@ pub struct Account {
     pub balance: Option<String>,
     /// Currency code (e.g. "USD")
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub currency: Option<String>,
+    pub currency: Option<iso_currency::Currency>,
     /// Account classification (e.g. "asset", "liability")
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub classification: Option<String>,
@@ -72,7 +72,7 @@ pub struct Transfer {
     // #[serde(with = "rust_decimal::serde::arbitrary_precision")]
     pub amount: String,
     /// Currency code (e.g., "USD", "EUR")
-    pub currency: String,
+    pub currency: iso_currency::Currency,
     /// The other account involved in the transfer
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub other_account: Option<Account>,
@@ -212,7 +212,7 @@ pub struct Transaction {
     // #[serde(with = "rust_decimal::serde::arbitrary_precision")]
     pub amount: String,
     /// Currency code (e.g., "USD", "EUR")
-    pub currency: String,
+    pub currency: iso_currency::Currency,
     /// Transaction name/description
     pub name: String,
     /// Additional notes
@@ -271,9 +271,9 @@ pub(crate) struct CreateTransactionData {
     /// Additional notes
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub notes: Option<String>,
-    /// Currency code (defaults to family currency)
+    /// Currency code
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub currency: Option<String>,
+    pub currency: Option<iso_currency::Currency>,
     /// Category ID
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub category_id: Option<CategoryId>,
@@ -315,7 +315,7 @@ pub(crate) struct UpdateTransactionData {
     pub notes: Option<String>,
     /// Currency code
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub currency: Option<String>,
+    pub currency: Option<iso_currency::Currency>,
     /// Category ID
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub category_id: Option<CategoryId>,

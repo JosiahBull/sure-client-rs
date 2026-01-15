@@ -34,7 +34,7 @@ async fn test_transaction_crud_lifecycle() {
         .name(format!("Transaction Test Account {}", timestamp))
         .kind(AccountKind::Depository)
         .balance(Decimal::new(100000, 2))
-        .currency("NZD".to_string())
+        .currency(iso_currency::Currency::NZD)
         .notes("For transaction testing".to_string())
         .call()
         .await
@@ -52,7 +52,7 @@ async fn test_transaction_crud_lifecycle() {
         .amount(Decimal::new(4250, 2)) // $42.50
         .name(format!("Test Transaction {}", timestamp))
         .notes("Integration test transaction".to_string())
-        .currency("NZD".to_string())
+        .currency(iso_currency::Currency::NZD)
         .nature(TransactionNature::Expense)
         .call()
         .await
@@ -177,7 +177,7 @@ async fn test_list_transactions_by_account() {
         .name(format!("Filter Test Account {}", timestamp))
         .kind(AccountKind::Depository)
         .balance(Decimal::new(100000, 2))
-        .currency("NZD".to_string())
+        .currency(iso_currency::Currency::NZD)
         .call()
         .await
         .expect("Failed to create test account");
@@ -193,7 +193,7 @@ async fn test_list_transactions_by_account() {
         .date(transaction_date)
         .amount(Decimal::new(2500, 2))
         .name(format!("Filter Test Transaction {}", timestamp))
-        .currency("NZD".to_string())
+        .currency(iso_currency::Currency::NZD)
         .nature(TransactionNature::Expense)
         .call()
         .await
@@ -248,7 +248,7 @@ async fn test_transaction_with_income_nature() {
         .name(format!("Income Test Account {}", timestamp))
         .kind(AccountKind::Depository)
         .balance(Decimal::new(0, 2))
-        .currency("NZD".to_string())
+        .currency(iso_currency::Currency::NZD)
         .call()
         .await
         .expect("Failed to create test account");
@@ -263,7 +263,7 @@ async fn test_transaction_with_income_nature() {
         .amount(Decimal::new(150000, 2)) // $1,500.00
         .name(format!("Salary Payment {}", timestamp))
         .notes("Test income transaction".to_string())
-        .currency("NZD".to_string())
+        .currency(iso_currency::Currency::NZD)
         .nature(TransactionNature::Income)
         .call()
         .await

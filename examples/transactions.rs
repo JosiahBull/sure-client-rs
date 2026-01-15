@@ -111,7 +111,7 @@ enum Commands {
 
         /// Currency code (optional, e.g., USD)
         #[arg(long)]
-        currency: Option<String>,
+        currency: Option<iso_currency::Currency>,
 
         /// Category ID (UUID, optional)
         #[arg(long)]
@@ -153,7 +153,7 @@ enum Commands {
 
         /// New currency code (optional)
         #[arg(long)]
-        currency: Option<String>,
+        currency: Option<iso_currency::Currency>,
 
         /// New category ID (UUID, optional)
         #[arg(long)]

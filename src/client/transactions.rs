@@ -206,7 +206,7 @@ impl SureClient {
     ///     .date(NaiveDate::from_ymd_opt(2024, 1, 15).unwrap())
     ///     .amount(Decimal::new(4250, 2)) // $42.50
     ///     .name("Grocery Store".to_string())
-    ///     .currency("USD".to_string())
+    ///     .currency(iso_currency::Currency::USD)
     ///     .call()
     ///     .await?;
     ///
@@ -223,7 +223,7 @@ impl SureClient {
         amount: Decimal,
         name: String,
         notes: Option<String>,
-        currency: Option<String>,
+        currency: Option<iso_currency::Currency>,
         category_id: Option<CategoryId>,
         merchant_id: Option<MerchantId>,
         nature: Option<TransactionNature>,
@@ -347,7 +347,7 @@ impl SureClient {
         amount: Option<Decimal>,
         name: Option<String>,
         notes: Option<String>,
-        currency: Option<String>,
+        currency: Option<iso_currency::Currency>,
         category_id: Option<CategoryId>,
         merchant_id: Option<MerchantId>,
         nature: Option<TransactionNature>,

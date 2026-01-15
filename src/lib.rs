@@ -138,7 +138,7 @@
 //!     .date(NaiveDate::from_ymd_opt(2024, 1, 15).unwrap())
 //!     .amount(Decimal::new(4250, 2)) // $42.50
 //!     .name("Grocery Store".to_string())
-//!     .currency("USD".to_string())
+//!     .currency(iso_currency::Currency::USD)
 //!     .call()
 //!     .await?;
 //!

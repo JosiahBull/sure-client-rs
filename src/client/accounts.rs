@@ -133,7 +133,7 @@ impl SureClient {
     ///     .name("Checking Account".to_string())
     ///     .kind(AccountKind::Depository)
     ///     .balance(Decimal::new(100000, 2)) // $1,000.00
-    ///     .currency("USD".to_string())
+    ///     .currency(iso_currency::Currency::USD)
     ///     .subtype("checking".to_string())
     ///     .institution_name("Bank of Example".to_string())
     ///     .call()
@@ -149,7 +149,7 @@ impl SureClient {
         name: String,
         kind: AccountKind,
         balance: Decimal,
-        currency: Option<String>,
+        currency: Option<iso_currency::Currency>,
         subtype: Option<String>,
         institution_name: Option<String>,
         institution_domain: Option<Url>,

@@ -94,7 +94,7 @@ pub struct Account {
     /// Formatted balance (e.g. "$1,234.56")
     pub balance: String,
     /// Currency code (e.g. "USD")
-    pub currency: String,
+    pub currency: iso_currency::Currency,
     /// Account classification (e.g. "asset", "liability")
     pub classification: String,
     /// Account kind
@@ -113,7 +113,7 @@ pub struct AccountDetail {
     /// Formatted balance (e.g. "$1,234.56")
     pub balance: String,
     /// Currency code (e.g. "USD")
-    pub currency: String,
+    pub currency: iso_currency::Currency,
     /// Account classification (e.g. "asset", "liability")
     pub classification: String,
     /// Account kind
@@ -168,7 +168,7 @@ pub(crate) struct CreateAccountData {
     pub balance: Decimal,
     /// Currency code (defaults to family currency if not provided)
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub currency: Option<String>,
+    pub currency: Option<iso_currency::Currency>,
     /// Account subtype (e.g. "checking", "savings")
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub subtype: Option<String>,

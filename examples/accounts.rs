@@ -66,7 +66,7 @@ enum Commands {
 
         /// Currency code (optional, defaults to family currency)
         #[arg(long)]
-        currency: Option<String>,
+        currency: Option<iso_currency::Currency>,
 
         /// Account subtype (e.g., "checking", "savings", optional)
         #[arg(long)]

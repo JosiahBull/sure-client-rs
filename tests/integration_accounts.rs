@@ -32,7 +32,7 @@ async fn test_account_crud_lifecycle() {
         .name(format!("Test Account {}", timestamp))
         .kind(AccountKind::Depository)
         .balance(Decimal::new(100000, 2)) // $1,000.00
-        .maybe_currency(Some("NZD".to_string()))
+        .maybe_currency(Some(iso_currency::Currency::NZD))
         .maybe_subtype(Some("checking".to_string()))
         .maybe_institution_name(Some("Test Bank".to_string()))
         .maybe_institution_domain(Some("http://www.testbank.com".parse().unwrap()))
@@ -42,7 +42,7 @@ async fn test_account_crud_lifecycle() {
         .expect("Failed to create account");
 
     assert_eq!(created.name, format!("Test Account {}", timestamp));
-    assert_eq!(created.currency, "NZD");
+    assert_eq!(created.currency, iso_currency::Currency::NZD);
     // Note: subtype may not be returned by the API
     assert!(created.is_active);
     println!("✓ Created account: {} (ID: {})", created.name, created.id);
@@ -165,7 +165,7 @@ async fn test_create_account_minimal() {
         .name(format!("Minimal Test Account {}", timestamp))
         .kind(AccountKind::OtherAsset)
         .balance(Decimal::new(0, 2)) // $0.00 - balance is required
-        .maybe_currency(Some("NZD".to_string())) // currency is also required
+        .maybe_currency(Some(iso_currency::Currency::NZD))
         .call()
         .await
         .expect("Failed to create minimal account");
@@ -192,7 +192,7 @@ async fn test_update_account_balance() {
         .name(format!("Balance Test Account {}", timestamp))
         .kind(AccountKind::Depository)
         .balance(Decimal::new(50000, 2)) // $500.00
-        .maybe_currency(Some("NZD".to_string()))
+        .maybe_currency(Some(iso_currency::Currency::NZD))
         .call()
         .await
         .expect("Failed to create account");
