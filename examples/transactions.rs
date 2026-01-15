@@ -10,7 +10,7 @@
 //!   cargo run --example transactions -- --token YOUR_TOKEN update --id TRANSACTION_ID --notes "Updated notes"
 //!   cargo run --example transactions -- --token YOUR_TOKEN delete --id TRANSACTION_ID
 
-use chrono::NaiveDate;
+use chrono::{DateTime, Utc};
 use clap::{Parser, Subcommand};
 use rust_decimal::Decimal;
 use sure_client_rs::models::transaction::{TransactionNature, TransactionType};
@@ -57,13 +57,13 @@ enum Commands {
         #[arg(long)]
         merchant_id: Option<String>,
 
-        /// Start date (YYYY-MM-DD)
+        /// Start date ISO 8861 String
         #[arg(long)]
-        start_date: Option<String>,
+        start_date: Option<DateTime<Utc>>,
 
-        /// End date (YYYY-MM-DD)
+        /// End date ISO 8861 String
         #[arg(long)]
-        end_date: Option<String>,
+        end_date: Option<DateTime<Utc>>,
 
         /// Minimum amount
         #[arg(long)]
@@ -93,9 +93,9 @@ enum Commands {
         #[arg(long)]
         account_id: String,
 
-        /// Transaction date (YYYY-MM-DD)
+        /// Transaction date
         #[arg(long)]
-        date: String,
+        date: DateTime<Utc>,
 
         /// Transaction amount (e.g., 42.50)
         #[arg(long)]
@@ -135,9 +135,9 @@ enum Commands {
         #[arg(long)]
         id: String,
 
-        /// New transaction date (YYYY-MM-DD, optional)
+        /// New transaction date (optional)
         #[arg(long)]
-        date: Option<String>,
+        date: Option<DateTime<Utc>>,
 
         /// New transaction amount (optional)
         #[arg(long)]
@@ -177,11 +177,6 @@ enum Commands {
         #[arg(long)]
         id: String,
     },
-}
-
-fn parse_date(s: &str) -> anyhow::Result<NaiveDate> {
-    NaiveDate::parse_from_str(s, "%Y-%m-%d")
-        .map_err(|e| anyhow::anyhow!("Invalid date format '{}': {}. Use YYYY-MM-DD", s, e))
 }
 
 #[tokio::main]
@@ -231,18 +226,6 @@ async fn main() -> anyhow::Result<()> {
                     MerchantId::parse(id_str)
                         .map_err(|e| anyhow::anyhow!("Invalid merchant ID: {}", e))?,
                 )
-            } else {
-                None
-            };
-
-            let start_date = if let Some(date_str) = &start_date {
-                Some(parse_date(date_str)?)
-            } else {
-                None
-            };
-
-            let end_date = if let Some(date_str) = &end_date {
-                Some(parse_date(date_str)?)
             } else {
                 None
             };
@@ -370,8 +353,6 @@ async fn main() -> anyhow::Result<()> {
             let account_id = AccountId::parse(&account_id)
                 .map_err(|e| anyhow::anyhow!("Invalid account ID: {}", e))?;
 
-            let date = parse_date(&date)?;
-
             let category_id = if let Some(id_str) = &category_id {
                 Some(
                     CategoryId::parse(id_str)
@@ -440,12 +421,6 @@ async fn main() -> anyhow::Result<()> {
         } => {
             let transaction_id = TransactionId::parse(&id)
                 .map_err(|e| anyhow::anyhow!("Invalid transaction ID: {}", e))?;
-
-            let date = if let Some(date_str) = &date {
-                Some(parse_date(date_str)?)
-            } else {
-                None
-            };
 
             let category_id = if let Some(id_str) = &category_id {
                 Some(

@@ -1,5 +1,5 @@
 use crate::types::{AccountId, CategoryId, MerchantId, TagId, TransactionId};
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
@@ -207,7 +207,7 @@ pub struct Transaction {
     pub id: TransactionId,
     /// Transaction date
     #[serde(with = "crate::serde::naive_date")]
-    pub date: NaiveDate,
+    pub date: DateTime<Utc>,
     /// Transaction amount
     // #[serde(with = "rust_decimal::serde::arbitrary_precision")]
     pub amount: String,
@@ -262,8 +262,7 @@ pub(crate) struct CreateTransactionData {
     /// Account ID (required)
     pub account_id: AccountId,
     /// Transaction date (required)
-    #[serde(with = "crate::serde::naive_date")]
-    pub date: NaiveDate,
+    pub date: DateTime<Utc>,
     /// Transaction amount (required)
     pub amount: Decimal,
     /// Transaction name/description (required)
@@ -302,8 +301,7 @@ pub(crate) struct UpdateTransactionRequest {
 pub(crate) struct UpdateTransactionData {
     /// Transaction date
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[serde(with = "crate::serde::naive_date_option")]
-    pub date: Option<NaiveDate>,
+    pub date: Option<DateTime<Utc>>,
     /// Transaction amount
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub amount: Option<Decimal>,

@@ -1,10 +1,10 @@
 use crate::models::account::{
-    AccountCollection, AccountDetail, AccountKind, CreateAccountData, CreateAccountRequest,
-    UpdateAccountData, UpdateAccountRequest,
+    AccountCollection, AccountDetail, AccountableAttributes, CreateAccountData,
+    CreateAccountRequest, UpdateAccountData, UpdateAccountRequest,
 };
 use crate::models::{DeleteResponse, PaginatedResponse};
 use crate::types::AccountId;
-use crate::{ApiError, error::ApiResult};
+use crate::{error::ApiResult, ApiError};
 use bon::bon;
 use reqwest::Method;
 use rust_decimal::Decimal;
@@ -109,10 +109,17 @@ impl SureClient {
 impl SureClient {
     /// Create a new account
     ///
-    /// Creates a new account with the specified details.
+    /// Creates a new account with type-specific attributes. The account kind is
+    /// automatically derived from the attributes you provide.
     ///
     /// # Arguments
-    /// * `request` - The account creation request containing all required fields
+    /// * `name` - The account name
+    /// * `balance` - The initial account balance
+    /// * `attributes` - Type-specific attributes that determine the account kind
+    /// * `currency` - Optional currency code (defaults to family currency if not provided)
+    /// * `institution_name` - Optional name of the financial institution
+    /// * `institution_domain` - Optional domain of the financial institution
+    /// * `notes` - Optional additional notes
     ///
     /// # Returns
     /// The newly created account with full details.
@@ -125,16 +132,20 @@ impl SureClient {
     /// # Example
     /// ```no_run
     /// use sure_client_rs::{SureClient, BearerToken};
-    /// use sure_client_rs::models::account::AccountKind;
+    /// use sure_client_rs::models::account::{
+    ///     AccountableAttributes, DepositoryAttributes, DepositorySubtype
+    /// };
     /// use rust_decimal::Decimal;
     ///
     /// # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
     /// let account = client.create_account()
     ///     .name("Checking Account".to_string())
-    ///     .kind(AccountKind::Depository)
     ///     .balance(Decimal::new(100000, 2)) // $1,000.00
+    ///     .attributes(AccountableAttributes::Depository(DepositoryAttributes {
+    ///         subtype: Some(DepositorySubtype::Checking),
+    ///         locked_attributes: None,
+    ///     }))
     ///     .currency(iso_currency::Currency::USD)
-    ///     .subtype("checking".to_string())
     ///     .institution_name("Bank of Example".to_string())
     ///     .call()
     ///     .await?;
@@ -147,26 +158,26 @@ impl SureClient {
     pub async fn create_account(
         &self,
         name: String,
-        kind: AccountKind,
         balance: Decimal,
+        attributes: AccountableAttributes,
         currency: Option<iso_currency::Currency>,
-        subtype: Option<String>,
         institution_name: Option<String>,
         institution_domain: Option<Url>,
         notes: Option<String>,
-        accountable_attributes: Option<serde_json::Value>,
     ) -> ApiResult<AccountDetail> {
+        // Derive the account kind from the attributes
+        let kind = attributes.kind();
+
         let request = CreateAccountRequest {
             account: CreateAccountData {
                 name,
                 kind,
                 balance,
                 currency,
-                subtype,
                 institution_name,
                 institution_domain,
                 notes,
-                accountable_attributes,
+                accountable_attributes: attributes,
             },
         };
 
@@ -182,11 +193,17 @@ impl SureClient {
     /// Update an account
     ///
     /// Updates an existing account with new values. Only fields provided in the
-    /// request will be updated.
+    /// request will be updated. If updating attributes, the entire attributes object
+    /// must be provided as it replaces the existing attributes.
     ///
     /// # Arguments
     /// * `id` - The account ID to update
-    /// * `request` - The account update request containing fields to update
+    /// * `name` - Optional new account name
+    /// * `balance` - Optional new balance
+    /// * `institution_name` - Optional new institution name
+    /// * `institution_domain` - Optional new institution domain
+    /// * `notes` - Optional new notes
+    /// * `attributes` - Optional new account-specific attributes (replaces existing)
     ///
     /// # Returns
     /// The updated account.
@@ -200,16 +217,30 @@ impl SureClient {
     /// # Example
     /// ```no_run
     /// use sure_client_rs::{SureClient, BearerToken, AccountId};
+    /// use sure_client_rs::models::account::{
+    ///     AccountableAttributes, DepositoryAttributes, DepositorySubtype
+    /// };
     /// use rust_decimal::Decimal;
     /// use uuid::Uuid;
     ///
     /// # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
     /// let account_id = AccountId::new(Uuid::new_v4());
     ///
+    /// // Update just the name and balance
     /// let account = client.update_account()
     ///     .id(&account_id)
     ///     .name("Updated Account Name".to_string())
     ///     .balance(Decimal::new(150000, 2)) // $1,500.00
+    ///     .call()
+    ///     .await?;
+    ///
+    /// // Update attributes
+    /// let updated = client.update_account()
+    ///     .id(&account_id)
+    ///     .attributes(AccountableAttributes::Depository(DepositoryAttributes {
+    ///         subtype: Some(DepositorySubtype::Savings),
+    ///         locked_attributes: None,
+    ///     }))
     ///     .call()
     ///     .await?;
     ///
@@ -223,21 +254,19 @@ impl SureClient {
         id: &AccountId,
         name: Option<String>,
         balance: Option<Decimal>,
-        subtype: Option<String>,
         institution_name: Option<String>,
         institution_domain: Option<Url>,
         notes: Option<String>,
-        accountable_attributes: Option<serde_json::Value>,
+        attributes: Option<AccountableAttributes>,
     ) -> ApiResult<AccountDetail> {
         let request = UpdateAccountRequest {
             account: UpdateAccountData {
                 name,
                 balance,
-                subtype,
                 institution_name,
                 institution_domain,
                 notes,
-                accountable_attributes,
+                accountable_attributes: attributes,
             },
         };
 

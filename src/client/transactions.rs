@@ -7,7 +7,7 @@ use crate::models::transaction::{
 use crate::models::{DeleteResponse, PaginatedResponse};
 use crate::types::{AccountId, CategoryId, MerchantId, TagId, TransactionId};
 use bon::bon;
-use chrono::NaiveDate;
+use chrono::{DateTime, Utc};
 use reqwest::Method;
 use rust_decimal::Decimal;
 use std::collections::HashMap;
@@ -50,15 +50,16 @@ impl SureClient {
     /// # Example
     /// ```no_run
     /// use sure_client_rs::{SureClient, BearerToken};
-    /// use chrono::NaiveDate;
+    /// use chrono::{DateTime, Utc};
     ///
     /// # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
     /// // Use defaults (page 1, per_page 25, no filters)
     /// let response = client.get_transactions().call().await?;
     ///
     /// // Or customize with builder
-    /// let start = NaiveDate::from_ymd_opt(2024, 1, 1).unwrap();
-    /// let end = NaiveDate::from_ymd_opt(2024, 12, 31).unwrap();
+    /// use chrono::TimeZone;
+    /// let start = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
+    /// let end = Utc.with_ymd_and_hms(2024, 12, 31, 23, 59, 59).unwrap();
     /// let response = client.get_transactions()
     ///     .page(2)
     ///     .per_page(50)
@@ -82,8 +83,8 @@ impl SureClient {
         merchant_id: Option<&MerchantId>,
         merchant_ids: Option<&[MerchantId]>,
         tag_ids: Option<&[TagId]>,
-        start_date: Option<&NaiveDate>,
-        end_date: Option<&NaiveDate>,
+        start_date: Option<&DateTime<Utc>>,
+        end_date: Option<&DateTime<Utc>>,
         min_amount: Option<Decimal>,
         max_amount: Option<Decimal>,
         transaction_type: Option<TransactionType>,
@@ -196,14 +197,14 @@ impl SureClient {
     /// # Example
     /// ```no_run
     /// use sure_client_rs::{SureClient, BearerToken, AccountId};
-    /// use chrono::NaiveDate;
+    /// use chrono::{DateTime, TimeZone, Utc};
     /// use rust_decimal::Decimal;
     /// use uuid::Uuid;
     ///
     /// # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
     /// let transaction = client.create_transaction()
     ///     .account_id(AccountId::new(Uuid::new_v4()))
-    ///     .date(NaiveDate::from_ymd_opt(2024, 1, 15).unwrap())
+    ///     .date(Utc.with_ymd_and_hms(2024, 1, 15, 12, 0, 0).unwrap())
     ///     .amount(Decimal::new(4250, 2)) // $42.50
     ///     .name("Grocery Store".to_string())
     ///     .currency(iso_currency::Currency::USD)
@@ -219,7 +220,7 @@ impl SureClient {
     pub async fn create_transaction(
         &self,
         account_id: AccountId,
-        date: NaiveDate,
+        date: DateTime<Utc>,
         amount: Decimal,
         name: String,
         notes: Option<String>,
@@ -343,7 +344,7 @@ impl SureClient {
     pub async fn update_transaction(
         &self,
         id: &TransactionId,
-        date: Option<NaiveDate>,
+        date: Option<DateTime<Utc>>,
         amount: Option<Decimal>,
         name: Option<String>,
         notes: Option<String>,

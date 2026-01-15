@@ -127,7 +127,7 @@
 //!
 //! ```no_run
 //! use sure_client_rs::{SureClient, BearerToken, AccountId};
-//! use chrono::NaiveDate;
+//! use chrono::{DateTime, TimeZone, Utc};
 //! use rust_decimal::Decimal;
 //! use uuid::Uuid;
 //!
@@ -135,7 +135,7 @@
 //! // Create a transaction using the builder pattern
 //! let transaction = client.create_transaction()
 //!     .account_id(AccountId::new(Uuid::new_v4()))
-//!     .date(NaiveDate::from_ymd_opt(2024, 1, 15).unwrap())
+//!     .date(Utc.with_ymd_and_hms(2024, 1, 15, 12, 0, 0).unwrap())
 //!     .amount(Decimal::new(4250, 2)) // $42.50
 //!     .name("Grocery Store".to_string())
 //!     .currency(iso_currency::Currency::USD)

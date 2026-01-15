@@ -3,9 +3,11 @@
 //! These tests require a running Sure API server and valid credentials.
 //! Set SURE_BASE_URL and SURE_TOKEN environment variables in the .env file.
 
-use chrono::{NaiveDate, Utc};
+use chrono::{DateTime, TimeZone, Utc};
 use rust_decimal::Decimal;
-use sure_client_rs::models::account::AccountKind;
+use sure_client_rs::models::account::{
+    AccountDetail, AccountableAttributes, DepositoryAttributes, DepositorySubtype,
+};
 use sure_client_rs::models::transaction::TransactionNature;
 use sure_client_rs::{Auth, SureClient};
 
@@ -29,10 +31,13 @@ async fn test_transaction_crud_lifecycle() {
     let timestamp = Utc::now().timestamp();
 
     // First, create a test account for transactions
-    let account = client
+    let account: AccountDetail = client
         .create_account()
         .name(format!("Transaction Test Account {}", timestamp))
-        .kind(AccountKind::Depository)
+        .attributes(AccountableAttributes::Depository(DepositoryAttributes {
+            subtype: Some(DepositorySubtype::Savings),
+            locked_attributes: None,
+        }))
         .balance(Decimal::new(100000, 2))
         .currency(iso_currency::Currency::NZD)
         .notes("For transaction testing".to_string())
@@ -43,7 +48,7 @@ async fn test_transaction_crud_lifecycle() {
     println!("✓ Created test account: {}", account.name);
 
     // Create a transaction
-    let transaction_date = NaiveDate::from_ymd_opt(2024, 1, 15).expect("Invalid date");
+    let transaction_date: DateTime<Utc> = Utc.with_ymd_and_hms(2024, 1, 15, 12, 0, 0).unwrap();
 
     let created = client
         .create_transaction()
@@ -138,8 +143,8 @@ async fn test_list_transactions_with_filters() {
     let client = create_test_client();
 
     // Test with date range filter
-    let start_date = NaiveDate::from_ymd_opt(2024, 1, 1).expect("Invalid date");
-    let end_date = NaiveDate::from_ymd_opt(2024, 12, 31).expect("Invalid date");
+    let start_date: DateTime<Utc> = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
+    let end_date: DateTime<Utc> = Utc.with_ymd_and_hms(2024, 12, 31, 23, 59, 59).unwrap();
 
     let transactions = client
         .get_transactions()
@@ -172,11 +177,16 @@ async fn test_list_transactions_by_account() {
     let timestamp = Utc::now().timestamp();
 
     // Create a test account
+    let attributes = AccountableAttributes::Depository(DepositoryAttributes {
+        subtype: Some(DepositorySubtype::Checking),
+        locked_attributes: None,
+    });
+
     let account = client
         .create_account()
         .name(format!("Filter Test Account {}", timestamp))
-        .kind(AccountKind::Depository)
         .balance(Decimal::new(100000, 2))
+        .attributes(attributes)
         .currency(iso_currency::Currency::NZD)
         .call()
         .await
@@ -185,7 +195,7 @@ async fn test_list_transactions_by_account() {
     println!("✓ Created test account: {}", account.name);
 
     // Create a transaction for this account
-    let transaction_date = NaiveDate::from_ymd_opt(2024, 6, 15).expect("Invalid date");
+    let transaction_date: DateTime<Utc> = Utc.with_ymd_and_hms(2024, 6, 15, 12, 0, 0).unwrap();
 
     let created_transaction = client
         .create_transaction()
@@ -243,18 +253,23 @@ async fn test_transaction_with_income_nature() {
     let timestamp = Utc::now().timestamp();
 
     // Create test account
+    let attributes = AccountableAttributes::Depository(DepositoryAttributes {
+        subtype: Some(DepositorySubtype::Checking),
+        locked_attributes: None,
+    });
+
     let account = client
         .create_account()
         .name(format!("Income Test Account {}", timestamp))
-        .kind(AccountKind::Depository)
         .balance(Decimal::new(0, 2))
+        .attributes(attributes)
         .currency(iso_currency::Currency::NZD)
         .call()
         .await
         .expect("Failed to create test account");
 
     // Create an income transaction
-    let transaction_date = NaiveDate::from_ymd_opt(2024, 3, 1).expect("Invalid date");
+    let transaction_date: DateTime<Utc> = Utc.with_ymd_and_hms(2024, 3, 1, 9, 0, 0).unwrap();
 
     let created = client
         .create_transaction()

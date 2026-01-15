@@ -1,4 +1,4 @@
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -89,12 +89,10 @@ pub struct SyncResponse {
     pub completed_at: Option<DateTime<Utc>>,
     /// Window start date
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[serde(with = "crate::serde::naive_date_option")]
-    pub window_start_date: Option<NaiveDate>,
+    pub window_start_date: Option<DateTime<Utc>>,
     /// Window end date
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[serde(with = "crate::serde::naive_date_option")]
-    pub window_end_date: Option<NaiveDate>,
+    pub window_end_date: Option<DateTime<Utc>>,
     /// Response message
     pub message: String,
 }

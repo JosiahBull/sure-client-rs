@@ -6,13 +6,16 @@
 //!   cargo run --example accounts -- --token YOUR_TOKEN list
 //!   cargo run --example accounts -- --token YOUR_TOKEN list --page 2 --per-page 10
 //!   cargo run --example accounts -- --token YOUR_TOKEN get --id ACCOUNT_ID
-//!   cargo run --example accounts -- --token YOUR_TOKEN create --name "Checking" --type "Depository" --balance 1000.00
+//!   cargo run --example accounts -- --token YOUR_TOKEN create-depository --name "Checking" --balance 1000.00 --subtype checking
 //!   cargo run --example accounts -- --token YOUR_TOKEN update --id ACCOUNT_ID --name "Updated Name"
 //!   cargo run --example accounts -- --token YOUR_TOKEN delete --id ACCOUNT_ID
 
 use clap::{Parser, Subcommand};
 use rust_decimal::Decimal;
-use sure_client_rs::models::account::AccountKind;
+use sure_client_rs::models::account::{
+    AccountableAttributes, DepositoryAttributes, DepositorySubtype, InvestmentAttributes,
+    InvestmentSubtype, OtherAssetAttributes,
+};
 use sure_client_rs::{AccountId, Auth, SureClient};
 use url::Url;
 
@@ -50,27 +53,23 @@ enum Commands {
         #[arg(long)]
         id: String,
     },
-    /// Create a new account
-    Create {
+    /// Create a depository (checking/savings) account
+    CreateDepository {
         /// Account name
         #[arg(long)]
         name: String,
-
-        /// Account type (e.g., "Depository", "CreditCard", "Investment", "Property", "Loan", "OtherAsset", "OtherLiability")
-        #[arg(long, alias = "type")]
-        kind: AccountKind,
 
         /// Initial balance
         #[arg(long)]
         balance: Decimal,
 
+        /// Subtype (checking, savings, hsa, cd, money_market)
+        #[arg(long)]
+        subtype: Option<String>,
+
         /// Currency code (optional, defaults to family currency)
         #[arg(long)]
         currency: Option<iso_currency::Currency>,
-
-        /// Account subtype (e.g., "checking", "savings", optional)
-        #[arg(long)]
-        subtype: Option<String>,
 
         /// Financial institution name (optional)
         #[arg(long)]
@@ -81,6 +80,62 @@ enum Commands {
         institution_domain: Option<Url>,
 
         /// Additional notes (optional)
+        #[arg(long)]
+        notes: Option<String>,
+    },
+    /// Create an investment account
+    CreateInvestment {
+        /// Account name
+        #[arg(long)]
+        name: String,
+
+        /// Initial balance
+        #[arg(long)]
+        balance: Decimal,
+
+        /// Subtype (brokerage, pension, retirement, 401k, etc.)
+        #[arg(long)]
+        subtype: Option<String>,
+
+        /// Currency code (optional)
+        #[arg(long)]
+        currency: Option<iso_currency::Currency>,
+
+        /// Institution name (optional)
+        #[arg(long)]
+        institution_name: Option<String>,
+
+        /// Institution domain (optional)
+        #[arg(long)]
+        institution_domain: Option<Url>,
+
+        /// Notes (optional)
+        #[arg(long)]
+        notes: Option<String>,
+    },
+    /// Create an other asset account
+    CreateOtherAsset {
+        /// Account name
+        #[arg(long)]
+        name: String,
+
+        /// Initial balance
+        #[arg(long)]
+        balance: Decimal,
+
+        /// Subtype (optional)
+        #[arg(long)]
+        subtype: Option<String>,
+
+        /// Currency code (optional)
+        #[arg(long)]
+        currency: Option<iso_currency::Currency>,
+
+        /// Institution name (optional)
+        #[arg(long)]
+        institution_name: Option<String>,
+
+        /// Notes (optional)
         #[arg(long)]
         notes: Option<String>,
     },
@@ -97,10 +152,6 @@ enum Commands {
         /// New balance (optional)
         #[arg(long)]
         balance: Option<Decimal>,
-
-        /// New account subtype (optional)
-        #[arg(long)]
-        subtype: Option<String>,
 
         /// New financial institution name (optional)
         #[arg(long)]
@@ -191,30 +242,143 @@ async fn main() -> anyhow::Result<()> {
             println!("Created:        {}", account.created_at);
             println!("Updated:        {}", account.updated_at);
         }
-        Commands::Create {
+        Commands::CreateDepository {
             name,
-            kind,
             balance,
-            currency,
             subtype,
+            currency,
             institution_name,
             institution_domain,
             notes,
         } => {
+            // Parse subtype if provided
+            let parsed_subtype = subtype.and_then(|s| match s.to_lowercase().as_str() {
+                "checking" => Some(DepositorySubtype::Checking),
+                "savings" => Some(DepositorySubtype::Savings),
+                "hsa" => Some(DepositorySubtype::Hsa),
+                "cd" => Some(DepositorySubtype::Cd),
+                "money_market" => Some(DepositorySubtype::MoneyMarket),
+                _ => None,
+            });
+
+            let attributes = AccountableAttributes::Depository(DepositoryAttributes {
+                subtype: parsed_subtype,
+                locked_attributes: None,
+            });
+
             let account = client
                 .create_account()
                 .name(name)
-                .kind(kind)
                 .balance(balance)
+                .attributes(attributes)
                 .maybe_currency(currency)
-                .maybe_subtype(subtype)
                 .maybe_institution_name(institution_name)
                 .maybe_institution_domain(institution_domain)
                 .maybe_notes(notes)
                 .call()
                 .await?;
 
-            println!("✓ Account created successfully!");
+            println!("✓ Depository account created successfully!");
+            println!();
+            println!("ID:             {}", account.id);
+            println!("Name:           {}", account.name);
+            println!("Balance:        {}", account.balance);
+            println!("Currency:       {}", account.currency);
+            println!("Classification: {}", account.classification);
+            println!("Type:           {}", account.kind);
+
+            if let Some(subtype) = account.subtype {
+                println!("Subtype:        {}", subtype);
+            }
+            if let Some(institution) = account.institution_name {
+                println!("Institution:    {}", institution);
+            }
+        }
+        Commands::CreateInvestment {
+            name,
+            balance,
+            subtype,
+            currency,
+            institution_name,
+            institution_domain,
+            notes,
+        } => {
+            // Parse subtype if provided
+            let parsed_subtype = subtype.and_then(|s| match s.to_lowercase().as_str() {
+                "brokerage" => Some(InvestmentSubtype::Brokerage),
+                "pension" => Some(InvestmentSubtype::Pension),
+                "retirement" => Some(InvestmentSubtype::Retirement),
+                "401k" => Some(InvestmentSubtype::FourZeroOneK),
+                "roth_401k" => Some(InvestmentSubtype::RothFourZeroOneK),
+                "403b" => Some(InvestmentSubtype::FourZeroThreeB),
+                "tsp" => Some(InvestmentSubtype::Tsp),
+                "529_plan" => Some(InvestmentSubtype::FiveTwoNinePlan),
+                "hsa" => Some(InvestmentSubtype::Hsa),
+                "mutual_fund" => Some(InvestmentSubtype::MutualFund),
+                "ira" => Some(InvestmentSubtype::Ira),
+                "roth_ira" => Some(InvestmentSubtype::RothIra),
+                "angel" => Some(InvestmentSubtype::Angel),
+                _ => None,
+            });
+
+            let attributes = AccountableAttributes::Investment(InvestmentAttributes {
+                subtype: parsed_subtype,
+                locked_attributes: None,
+            });
+
+            let account = client
+                .create_account()
+                .name(name)
+                .balance(balance)
+                .attributes(attributes)
+                .maybe_currency(currency)
+                .maybe_institution_name(institution_name)
+                .maybe_institution_domain(institution_domain)
+                .maybe_notes(notes)
+                .call()
+                .await?;
+
+            println!("✓ Investment account created successfully!");
+            println!();
+            println!("ID:             {}", account.id);
+            println!("Name:           {}", account.name);
+            println!("Balance:        {}", account.balance);
+            println!("Currency:       {}", account.currency);
+            println!("Classification: {}", account.classification);
+            println!("Type:           {}", account.kind);
+
+            if let Some(subtype) = account.subtype {
+                println!("Subtype:        {}", subtype);
+            }
+            if let Some(institution) = account.institution_name {
+                println!("Institution:    {}", institution);
+            }
+        }
+        Commands::CreateOtherAsset {
+            name,
+            balance,
+            subtype,
+            currency,
+            institution_name,
+            notes,
+        } => {
+            let attributes = AccountableAttributes::OtherAsset(OtherAssetAttributes {
+                subtype,
+                locked_attributes: None,
+            });
+
+            let account = client
+                .create_account()
+                .name(name)
+                .balance(balance)
+                .attributes(attributes)
+                .maybe_currency(currency)
+                .maybe_institution_name(institution_name)
+                .maybe_notes(notes)
+                .call()
+                .await?;
+
+            println!("✓ Other asset account created successfully!");
             println!();
             println!("ID:             {}", account.id);
             println!("Name:           {}", account.name);
@@ -234,7 +398,6 @@ async fn main() -> anyhow::Result<()> {
             id,
             name,
             balance,
-            subtype,
             institution_name,
             institution_domain,
             notes,
@@ -247,7 +410,6 @@ async fn main() -> anyhow::Result<()> {
                 .id(&account_id)
                 .maybe_name(name)
                 .maybe_balance(balance)
-                .maybe_subtype(subtype)
                 .maybe_institution_name(institution_name)
                 .maybe_institution_domain(institution_domain)
                 .maybe_notes(notes)

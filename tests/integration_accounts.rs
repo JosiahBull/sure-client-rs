@@ -5,7 +5,9 @@
 
 use chrono::Utc;
 use rust_decimal::Decimal;
-use sure_client_rs::models::account::AccountKind;
+use sure_client_rs::models::account::{
+    AccountableAttributes, DepositoryAttributes, DepositorySubtype, OtherAssetAttributes,
+};
 use sure_client_rs::{Auth, SureClient};
 
 /// Helper function to create a test client
@@ -27,13 +29,17 @@ async fn test_account_crud_lifecycle() {
     let timestamp = Utc::now().timestamp();
 
     // Create an account
+    let attributes = AccountableAttributes::Depository(DepositoryAttributes {
+        subtype: Some(DepositorySubtype::Checking),
+        locked_attributes: None,
+    });
+
     let created = client
         .create_account()
         .name(format!("Test Account {}", timestamp))
-        .kind(AccountKind::Depository)
         .balance(Decimal::new(100000, 2)) // $1,000.00
+        .attributes(attributes)
         .maybe_currency(Some(iso_currency::Currency::NZD))
-        .maybe_subtype(Some("checking".to_string()))
         .maybe_institution_name(Some("Test Bank".to_string()))
         .maybe_institution_domain(Some("http://www.testbank.com".parse().unwrap()))
         .maybe_notes(Some("Integration test account".to_string()))
@@ -63,7 +69,6 @@ async fn test_account_crud_lifecycle() {
         .id(&created.id)
         .maybe_name(Some(format!("Updated Test Account {}", timestamp)))
         .maybe_notes(Some("Updated during integration test".to_string()))
-        .maybe_subtype(Some("savings".to_string()))
         .call()
         .await
         .expect("Failed to update account");
@@ -73,7 +78,6 @@ async fn test_account_crud_lifecycle() {
         updated.notes,
         Some("Updated during integration test".to_string())
     );
-    // Note: subtype may not be returned by the API
     println!("✓ Updated account: {}", updated.name);
 
     // List accounts and verify our account is in the list
@@ -160,11 +164,16 @@ async fn test_create_account_minimal() {
 
     // Create account with minimal required fields
     // Note: balance is required by the API
+    let attributes = AccountableAttributes::OtherAsset(OtherAssetAttributes {
+        subtype: None,
+        locked_attributes: None,
+    });
+
     let created = client
         .create_account()
         .name(format!("Minimal Test Account {}", timestamp))
-        .kind(AccountKind::OtherAsset)
         .balance(Decimal::new(0, 2)) // $0.00 - balance is required
+        .attributes(attributes)
         .maybe_currency(Some(iso_currency::Currency::NZD))
         .call()
         .await
@@ -187,11 +196,16 @@ async fn test_update_account_balance() {
     let timestamp = Utc::now().timestamp();
 
     // Create account
+    let attributes = AccountableAttributes::Depository(DepositoryAttributes {
+        subtype: None,
+        locked_attributes: None,
+    });
+
     let created = client
         .create_account()
         .name(format!("Balance Test Account {}", timestamp))
-        .kind(AccountKind::Depository)
         .balance(Decimal::new(50000, 2)) // $500.00
+        .attributes(attributes)
         .maybe_currency(Some(iso_currency::Currency::NZD))
         .call()
         .await
