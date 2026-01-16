@@ -1,0 +1,85 @@
+name: Tests
+
+on:
+  push:
+    paths:
+      - ".cargo/*.toml"
+      - ".github/workflows/*.yaml"
+      - "Cargo.*"
+      - "mutants_attrs/**"
+      - "**/src/**"
+      - "**/tests/**"
+
+# see https://matklad.github.io/2021/09/04/fast-rust-builds.html
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
+  CI: 1
+  RUST_BACKTRACE: short
+  RUSTUP_MAX_RETRIES: 10
+  CARGO_MUTANTS_MINIMUM_TEST_TIMEOUT: 60
+  RUSTFLAGS: "-D warnings"
+  RUSTDOCFLAGS: "-D warnings"
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    timeout-minutes: 30
+    concurrency:
+      group: ci-${{ github.repository }}-${{ github.ref }}-${{ matrix.os }}
+      cancel-in-progress: true
+
+    # Setup Rust
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: rustfmt, clippy, rust-docs
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-all-crates: true
+          cache-bin: true
+          cache-targets: true
+
+      - name: Show Cargo and rustc version
+        run: |
+          cargo --version
+          rustc --version
+
+      - name: Rustfmt
+        if: matrix.os == 'ubuntu-latest'
+        run: cargo fmt --all -- --check
+
+      - name: Test
+        run: cargo test --all-targets --all-features --workspace
+
+      - name: Clippy
+        if: matrix.os == 'ubuntu-latest'
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Try building the docs
+        if: matrix.os == 'ubuntu-latest'
+        run: cargo doc
+
+      - name: Check semver
+        if: matrix.os == 'ubuntu-latest'
+        uses: obi1kenobi/cargo-semver-checks-action@v2
+
+      # - name: Install cargo-mutants
+      #   if: matrix.os == 'ubuntu-latest'
+      #   run: cargo install cargo-mutants
+
+      # - if: matrix.os == 'ubuntu-latest'
+      #   run: cargo mutants -vV --in-place --all-features
+      # - if: matrix.os == 'ubuntu-latest'
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: mutants-out
+      #     path: mutants.out
