@@ -33,7 +33,11 @@ pub mod naive_date {
             NaiveDate::parse_from_str(&s, "%Y-%m-%d").map_err(serde::de::Error::custom)?;
         // When only a date is given, assume it's the start of the day in UTC.
         Ok(Utc
-            .from_local_datetime(&naive_date.and_hms_opt(0, 0, 0).unwrap())
+            .from_local_datetime(
+                &naive_date
+                    .and_hms_opt(0, 0, 0)
+                    .expect("Infallible conversion"),
+            )
             .unwrap())
     }
 }

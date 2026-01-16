@@ -411,7 +411,7 @@ pub struct OtherAssetAttributes {
 }
 
 /// Attributes for credit card liabilities
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct CreditCardAttributes {
     /// Credit card subtype (only "credit_card" is predefined)
@@ -462,7 +462,7 @@ pub enum LoanRateType {
 }
 
 /// Attributes for loan liabilities
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct LoanAttributes {
     /// Loan subtype
@@ -500,7 +500,7 @@ pub struct OtherLiabilityAttributes {
 /// Type-specific attributes for different account kinds.
 ///
 /// The enum variant must match the `AccountKind` used when creating the account.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum AccountableAttributes {
     /// Depository account attributes
@@ -525,7 +525,7 @@ pub enum AccountableAttributes {
 
 impl AccountableAttributes {
     /// Returns the `AccountKind` that corresponds to these attributes.
-    pub fn kind(&self) -> AccountKind {
+    pub const fn kind(&self) -> AccountKind {
         match self {
             Self::Depository(_) => AccountKind::Depository,
             Self::Investment(_) => AccountKind::Investment,
