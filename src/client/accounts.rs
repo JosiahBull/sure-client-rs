@@ -4,7 +4,7 @@ use crate::models::account::{
 };
 use crate::models::{DeleteResponse, PaginatedResponse};
 use crate::types::AccountId;
-use crate::{error::ApiResult, ApiError};
+use crate::{ApiError, error::ApiResult};
 use bon::bon;
 use reqwest::Method;
 use rust_decimal::Decimal;

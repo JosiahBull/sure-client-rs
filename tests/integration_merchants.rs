@@ -3,6 +3,14 @@
 //! These tests require a running Sure API server and valid credentials.
 //! Set SURE_BASE_URL and SURE_TOKEN environment variables in the .env file.
 
+#![allow(
+    clippy::tests_outside_test_module,
+    clippy::unwrap_used,
+    clippy::too_many_lines,
+    clippy::indexing_slicing,
+    reason = "Integration tests are correctly placed outside cfg(test) modules"
+)]
+
 use chrono::Utc;
 use sure_client_rs::{Auth, SureClient};
 

@@ -1,4 +1,4 @@
-use crate::types::AccountId;
+use crate::{serde::deserialize_flexible_decimal, types::AccountId};
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -92,8 +92,9 @@ pub struct Account {
     pub id: AccountId,
     /// Account name
     pub name: String,
-    /// Formatted balance (e.g. "$1,234.56")
-    pub balance: String,
+    /// Unformatted balance
+    #[serde(deserialize_with = "deserialize_flexible_decimal")]
+    pub balance: Decimal,
     /// Currency code (e.g. "USD")
     pub currency: iso_currency::Currency,
     /// Account classification (e.g. "asset", "liability")
@@ -111,8 +112,9 @@ pub struct AccountDetail {
     pub id: AccountId,
     /// Account name
     pub name: String,
-    /// Formatted balance (e.g. "$1,234.56")
-    pub balance: String,
+    /// Unformatted balance
+    #[serde(deserialize_with = "deserialize_flexible_decimal")]
+    pub balance: Decimal,
     /// Currency code (e.g. "USD")
     pub currency: iso_currency::Currency,
     /// Account classification (e.g. "asset", "liability")
@@ -411,7 +413,7 @@ pub struct OtherAssetAttributes {
 }
 
 /// Attributes for credit card liabilities
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct CreditCardAttributes {
     /// Credit card subtype (only "credit_card" is predefined)
@@ -462,7 +464,7 @@ pub enum LoanRateType {
 }
 
 /// Attributes for loan liabilities
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct LoanAttributes {
     /// Loan subtype
@@ -500,7 +502,7 @@ pub struct OtherLiabilityAttributes {
 /// Type-specific attributes for different account kinds.
 ///
 /// The enum variant must match the `AccountKind` used when creating the account.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum AccountableAttributes {
     /// Depository account attributes
@@ -525,7 +527,7 @@ pub enum AccountableAttributes {
 
 impl AccountableAttributes {
     /// Returns the `AccountKind` that corresponds to these attributes.
-    pub fn kind(&self) -> AccountKind {
+    pub const fn kind(&self) -> AccountKind {
         match self {
             Self::Depository(_) => AccountKind::Depository,
             Self::Investment(_) => AccountKind::Investment,

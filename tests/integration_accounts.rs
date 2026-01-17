@@ -3,6 +3,14 @@
 //! These tests require a running Sure API server and valid credentials.
 //! Set SURE_BASE_URL and SURE_TOKEN environment variables in the .env file.
 
+#![allow(
+    clippy::tests_outside_test_module,
+    clippy::unwrap_used,
+    clippy::too_many_lines,
+    clippy::indexing_slicing,
+    reason = "Integration tests are correctly placed outside cfg(test) modules"
+)]
+
 use chrono::Utc;
 use rust_decimal::Decimal;
 use sure_client_rs::models::account::{
@@ -37,7 +45,7 @@ async fn test_account_crud_lifecycle() {
     let created = client
         .create_account()
         .name(format!("Test Account {}", timestamp))
-        .balance(Decimal::new(100000, 2)) // $1,000.00
+        .balance(Decimal::new(100_000, 2)) // $1,000.00
         .attributes(attributes)
         .maybe_currency(Some(iso_currency::Currency::NZD))
         .maybe_institution_name(Some("Test Bank".to_string()))

@@ -100,9 +100,9 @@ newtype_string!(
 /// - API key via X-Api-Key header
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Auth {
-    /// Bearer token authentication (Authorization: Bearer <token>)
+    /// Bearer token authentication (Authorization: Bearer \<token\>)
     Bearer(BearerToken),
-    /// API key authentication (X-Api-Key: <key>)
+    /// API key authentication (X-Api-Key: \<key\>)
     ApiKey(ApiKey),
 }
 

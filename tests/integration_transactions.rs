@@ -3,6 +3,16 @@
 //! These tests require a running Sure API server and valid credentials.
 //! Set SURE_BASE_URL and SURE_TOKEN environment variables in the .env file.
 
+#![allow(
+    clippy::tests_outside_test_module,
+    clippy::unwrap_used,
+    clippy::too_many_lines,
+    clippy::single_element_loop,
+    clippy::clone_on_copy,
+    clippy::cloned_ref_to_slice_refs,
+    reason = "Integration tests are correctly placed outside cfg(test) modules"
+)]
+
 use chrono::{DateTime, TimeZone, Utc};
 use rust_decimal::Decimal;
 use sure_client_rs::models::account::{
@@ -38,7 +48,7 @@ async fn test_transaction_crud_lifecycle() {
             subtype: Some(DepositorySubtype::Savings),
             locked_attributes: None,
         }))
-        .balance(Decimal::new(100000, 2))
+        .balance(Decimal::new(100_000, 2))
         .currency(iso_currency::Currency::NZD)
         .notes("For transaction testing".to_string())
         .call()
@@ -185,7 +195,7 @@ async fn test_list_transactions_by_account() {
     let account = client
         .create_account()
         .name(format!("Filter Test Account {}", timestamp))
-        .balance(Decimal::new(100000, 2))
+        .balance(Decimal::new(100_000, 2))
         .attributes(attributes)
         .currency(iso_currency::Currency::NZD)
         .call()
@@ -275,7 +285,7 @@ async fn test_transaction_with_income_nature() {
         .create_transaction()
         .account_id(account.id.clone())
         .date(transaction_date)
-        .amount(Decimal::new(150000, 2)) // $1,500.00
+        .amount(Decimal::new(150_000, 2)) // $1,500.00
         .name(format!("Salary Payment {}", timestamp))
         .notes("Test income transaction".to_string())
         .currency(iso_currency::Currency::NZD)
