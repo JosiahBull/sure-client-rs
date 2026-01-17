@@ -1,4 +1,4 @@
-use crate::types::AccountId;
+use crate::{serde::deserialize_flexible_decimal, types::AccountId};
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -92,8 +92,9 @@ pub struct Account {
     pub id: AccountId,
     /// Account name
     pub name: String,
-    /// Formatted balance (e.g. "$1,234.56")
-    pub balance: String,
+    /// Unformatted balance
+    #[serde(deserialize_with = "deserialize_flexible_decimal")]
+    pub balance: Decimal,
     /// Currency code (e.g. "USD")
     pub currency: iso_currency::Currency,
     /// Account classification (e.g. "asset", "liability")
@@ -111,8 +112,9 @@ pub struct AccountDetail {
     pub id: AccountId,
     /// Account name
     pub name: String,
-    /// Formatted balance (e.g. "$1,234.56")
-    pub balance: String,
+    /// Unformatted balance
+    #[serde(deserialize_with = "deserialize_flexible_decimal")]
+    pub balance: Decimal,
     /// Currency code (e.g. "USD")
     pub currency: iso_currency::Currency,
     /// Account classification (e.g. "asset", "liability")
