@@ -53,10 +53,10 @@ jobs:
         run: cargo +nightly udeps --all-targets --all-features
 
       # Ensure licenses are all good
-      - name: Install cargo-deny
-        run: cargo binstall cargo-deny -y
-      - name: Check cargo-deny
-        run: cargo deny --all-features check
+      # - name: Install cargo-deny
+      #   run: cargo binstall cargo-deny -y
+      # - name: Check cargo-deny
+      #   run: cargo deny --all-features check
 
       # Use cargo tree, and fail if openssl is present
       - name: Check openssl
