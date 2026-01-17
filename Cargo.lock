@@ -857,15 +857,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "nzfcc"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b44d9aa3e4a1f17741c54183697b8e680335ae61d2d371989ba204cdc0850a9c"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "once_cell"
 version = "1.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1441,7 +1432,6 @@ dependencies = [
  "clap",
  "dotenvy",
  "iso_currency",
- "nzfcc",
  "reqwest",
  "rust_decimal",
  "serde",
