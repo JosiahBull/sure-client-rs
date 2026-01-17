@@ -10,7 +10,7 @@ use std::{fmt, str::FromStr as _};
 use rust_decimal::{Decimal, prelude::FromPrimitive as _};
 use serde::{Deserializer, de};
 
-/// Serialize/deserialize DateTime<Utc> as ISO 8601 format
+/// Serialize/deserialize `DateTime<Utc>` as ISO 8601 format
 pub mod naive_date {
     use chrono::{DateTime, NaiveDate, TimeZone, Utc};
     use serde::{Deserialize, Deserializer, Serializer};
