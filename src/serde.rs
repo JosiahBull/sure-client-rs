@@ -43,7 +43,8 @@ pub mod naive_date {
                     .and_hms_opt(0, 0, 0)
                     .expect("Infallible conversion"),
             )
-            .unwrap())
+            .single()
+            .expect("Valid UTC datetime"))
     }
 }
 
@@ -114,6 +115,12 @@ where
                 .ok_or_else(|| E::custom(format!("invalid float value: {}", value)))
         }
 
+        #[allow(
+            clippy::else_if_without_else,
+            clippy::string_slice,
+            clippy::arithmetic_side_effects,
+            reason = "Character filtering logic with safe string operations - indices checked before use"
+        )]
         fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
         where
             E: de::Error,
@@ -215,6 +222,7 @@ where
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, reason = "Test code with known-good conversions")]
 mod tests {
     use rust_decimal::prelude::FromPrimitive as _;
     use serde::Deserialize;
@@ -236,9 +244,9 @@ mod tests {
     #[test]
     fn test_flexible_decimal_parsing() {
         // Simple integer
-        test_parsing(r#"{"balance": "1000"}"#, Decimal::from(1000u64));
+        test_parsing(r#"{"balance": "1000"}"#, Decimal::from(1000_u64));
         // With currency symbol
-        test_parsing(r#"{"balance": "$1000"}"#, Decimal::from(1000u64));
+        test_parsing(r#"{"balance": "$1000"}"#, Decimal::from(1000_u64));
         // With currency symbol and decimals
         test_parsing(
             r#"{"balance": "$1000.00"}"#,
@@ -247,21 +255,21 @@ mod tests {
         // With comma as thousands separator
         test_parsing(
             r#"{"balance": "100,000.00"}"#,
-            Decimal::from_f64(100000.00).unwrap(),
+            Decimal::from_f64(100_000.00).unwrap(),
         );
         // With dot as thousands separator and comma as decimal
         test_parsing(
             r#"{"balance": "100.000,00"}"#,
-            Decimal::from_f64(100000.00).unwrap(),
+            Decimal::from_f64(100_000.00).unwrap(),
         );
         // Multiple thousands separators
         test_parsing(
             r#"{"balance": "1,234,567.89"}"#,
-            Decimal::from_f64(1234567.89).unwrap(),
+            Decimal::from_f64(1_234_567.89).unwrap(),
         );
         test_parsing(
             r#"{"balance": "1.234.567,89"}"#,
-            Decimal::from_f64(1234567.89).unwrap(),
+            Decimal::from_f64(1_234_567.89).unwrap(),
         );
         // Different currency symbols
         test_parsing(
@@ -291,8 +299,8 @@ mod tests {
             Decimal::from_f64(-1234.56).unwrap(),
         );
         // No fractional part
-        test_parsing(r#"{"balance": "1,000"}"#, Decimal::from(1000u64));
-        test_parsing(r#"{"balance": "1.000"}"#, Decimal::from(1000u64));
+        test_parsing(r#"{"balance": "1,000"}"#, Decimal::from(1000_u64));
+        test_parsing(r#"{"balance": "1.000"}"#, Decimal::from(1000_u64));
         // Just decimals
         test_parsing(r#"{"balance": ".50"}"#, Decimal::from_f64(0.50).unwrap());
         test_parsing(r#"{"balance": "0.50"}"#, Decimal::from_f64(0.50).unwrap());

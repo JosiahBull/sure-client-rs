@@ -6,6 +6,13 @@
 //! Note: Auth tests (signup, login) are excluded as they require special setup
 //! and may interfere with existing user accounts.
 
+#![allow(
+    clippy::tests_outside_test_module,
+    clippy::unwrap_used,
+    clippy::too_many_lines,
+    reason = "Integration tests are correctly placed outside cfg(test) modules"
+)]
+
 use sure_client_rs::{Auth, SureClient};
 
 /// Helper function to create a test client

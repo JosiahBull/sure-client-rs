@@ -120,14 +120,10 @@ enum Commands {
 
 fn validate_and_normalize_hex_code(code: &str) -> Option<String> {
     let code = code.trim();
-    if code.len() == 7
+    (code.len() == 7
         && code.starts_with('#')
-        && code.chars().skip(1).all(|c| c.is_ascii_hexdigit())
-    {
-        Some(code.to_uppercase())
-    } else {
-        None
-    }
+        && code.chars().skip(1).all(|c| c.is_ascii_hexdigit()))
+    .then(|| code.to_uppercase())
 }
 
 #[tokio::main]
