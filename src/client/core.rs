@@ -18,6 +18,9 @@ impl SureClient {
     where
         T: serde::de::DeserializeOwned,
     {
+        // Strip leading / from path if present
+        let path = path.trim_start_matches('/');
+
         // 1. Build URL
         let url = if let Some(params) = query_params {
             reqwest::Url::parse_with_params(&format!("{}{}", self.base_url, path), params)
@@ -26,6 +29,8 @@ impl SureClient {
             reqwest::Url::parse(&format!("{}{}", self.base_url, path))
                 .map_err(ApiError::UrlParse)?
         };
+
+        //println!("Request URL: {}", url); // Debugging line to print the URL
 
         // 2. Build headers
         let mut headers = HeaderMap::new();
