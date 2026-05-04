@@ -2,7 +2,10 @@ use chrono::{DateTime, NaiveDate, Utc};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
-use crate::models::account::Account;
+// Valuation responses embed the same trimmed `{id, name, account_type, ...}`
+// shape that transaction responses use, so we share the existing `Account`
+// reference type from the transaction module rather than redefining it.
+use crate::models::transaction::Account;
 use crate::serde::deserialize_flexible_decimal;
 use crate::types::{AccountId, ValuationId};
 
