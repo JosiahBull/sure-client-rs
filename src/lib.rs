@@ -210,5 +210,5 @@ mod types;
 pub use client::SureClient;
 pub use error::{ApiError, ApiResult};
 pub use types::{
-    AccountId, ApiKey, Auth, BearerToken, CategoryId, MerchantId, TagId, TransactionId,
+    AccountId, ApiKey, Auth, BearerToken, CategoryId, MerchantId, TagId, TransactionId, ValuationId,
 };

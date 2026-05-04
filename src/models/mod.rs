@@ -6,6 +6,7 @@ pub mod merchant;
 pub mod sync;
 pub mod transaction;
 pub mod usage;
+pub mod valuation;
 
 use serde::{Deserialize, Serialize};
 

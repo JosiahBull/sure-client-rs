@@ -155,6 +155,11 @@ newtype_uuid!(
     pub TransactionId
 );
 
+newtype_uuid!(
+    /// Valuation identifier
+    pub ValuationId
+);
+
 #[cfg(test)]
 mod tests {
     use super::*;

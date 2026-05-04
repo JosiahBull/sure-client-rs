@@ -7,6 +7,7 @@ mod merchants;
 mod sync;
 mod transactions;
 mod usage;
+mod valuations;
 
 use url::Url;
 
