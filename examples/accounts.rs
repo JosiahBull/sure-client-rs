@@ -234,7 +234,12 @@ async fn main() -> anyhow::Result<()> {
             if let Some(domain) = account.institution_domain {
                 println!("Domain:         {}", domain);
             }
-            println!("Status:         {}", account.status);
+            if let Some(status) = &account.status {
+                println!("Status:         {}", status);
+            }
+            if let Some(active) = account.is_active {
+                println!("Active:         {}", active);
+            }
             println!("Created:        {}", account.created_at);
             println!("Updated:        {}", account.updated_at);
         }

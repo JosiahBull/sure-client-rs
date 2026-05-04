@@ -58,7 +58,7 @@ async fn test_account_crud_lifecycle() {
     assert_eq!(created.name, format!("Test Account {}", timestamp));
     assert_eq!(created.currency, iso_currency::Currency::NZD);
     // Note: subtype may not be returned by the API
-    assert_eq!(created.status, "active");
+    assert_eq!(created.status.as_deref(), Some("active"));
     println!("✓ Created account: {} (ID: {})", created.name, created.id);
 
     // Get the account by ID

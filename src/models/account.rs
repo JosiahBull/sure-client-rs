@@ -1,4 +1,7 @@
-use crate::{serde::deserialize_flexible_decimal, types::AccountId};
+use crate::{
+    serde::{deserialize_flexible_decimal, deserialize_flexible_decimal_opt},
+    types::AccountId,
+};
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -88,6 +91,13 @@ impl TryFrom<&str> for AccountKind {
 ///
 /// Sure renders both list and detail responses through the same `_account`
 /// partial, so this struct covers both shapes.
+///
+/// Several fields are optional purely for response-shape compatibility with
+/// older Sure deployments — the upstream `_account.json.jbuilder` was
+/// reworked, so a current Sure renders `balance_cents` / `cash_balance` /
+/// `cash_balance_cents` / `status` and *omits* `notes` / `is_active`, while
+/// pre-rework deployments do the opposite. Marking each as
+/// `Option<...> + #[serde(default)]` lets the same struct decode both shapes.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct Account {
@@ -96,16 +106,25 @@ pub struct Account {
     /// Account name
     pub name: String,
     /// Unformatted balance, parsed from Sure's currency-formatted string
-    /// (e.g. `"NZ$770,000.00"`).
+    /// (e.g. `"NZ$770,000.00"`). Always present.
     #[serde(deserialize_with = "deserialize_flexible_decimal")]
     pub balance: Decimal,
-    /// Balance in the currency's minor unit (e.g. cents).
-    pub balance_cents: i64,
+    /// Balance in the currency's minor unit (e.g. cents). Only emitted by
+    /// post-rework Sure deployments.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub balance_cents: Option<i64>,
     /// Unformatted cash balance, parsed from Sure's currency-formatted string.
-    #[serde(deserialize_with = "deserialize_flexible_decimal")]
-    pub cash_balance: Decimal,
-    /// Cash balance in the currency's minor unit.
-    pub cash_balance_cents: i64,
+    /// Only emitted by post-rework Sure deployments.
+    #[serde(
+        default,
+        deserialize_with = "deserialize_flexible_decimal_opt",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub cash_balance: Option<Decimal>,
+    /// Cash balance in the currency's minor unit. Only emitted by post-rework
+    /// Sure deployments.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cash_balance_cents: Option<i64>,
     /// Currency code (e.g. "USD")
     pub currency: iso_currency::Currency,
     /// Account classification (e.g. "asset", "liability")
@@ -116,14 +135,26 @@ pub struct Account {
     /// Account subtype (e.g. "checking", "savings")
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub subtype: Option<String>,
-    /// Account status (e.g. "active", "disabled", "draft")
-    pub status: String,
+    /// Account status (e.g. "active", "disabled", "draft"). Only emitted by
+    /// post-rework Sure deployments; pre-rework instances expose the legacy
+    /// [`Account::is_active`] boolean instead.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
     /// Name of the financial institution
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub institution_name: Option<String>,
     /// Domain of the financial institution
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub institution_domain: Option<String>,
+    /// Free-form account notes. Only emitted by pre-rework Sure deployments;
+    /// post-rework instances no longer surface this field on responses (the
+    /// column is still settable on create/update).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub notes: Option<String>,
+    /// Whether the account is active. Only emitted by pre-rework Sure
+    /// deployments; post-rework instances expose [`Account::status`] instead.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub is_active: Option<bool>,
     /// Creation timestamp
     pub created_at: DateTime<Utc>,
     /// Last update timestamp
@@ -534,5 +565,77 @@ impl AccountableAttributes {
             Self::Loan(_) => AccountKind::Loan,
             Self::OtherLiability(_) => AccountKind::OtherLiability,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rust_decimal::Decimal;
+    use std::str::FromStr as _;
+
+    /// Post-rework Sure deployments render `_account.json.jbuilder` with the
+    /// new fields (balance_cents/cash_balance/cash_balance_cents/status) and
+    /// without the legacy `notes`/`is_active` keys.
+    #[test]
+    fn deserializes_post_rework_account_shape() {
+        let json = r#"{
+            "id": "fef35d2d-928a-44c9-b3a8-da986d9accd8",
+            "name": "3A Amstel Lane",
+            "balance": "NZ$770,000.00",
+            "balance_cents": 77000000,
+            "cash_balance": "NZ$770,000.00",
+            "cash_balance_cents": 77000000,
+            "currency": "NZD",
+            "classification": "asset",
+            "account_type": "property",
+            "subtype": "single_family_home",
+            "status": "active",
+            "institution_name": null,
+            "institution_domain": null,
+            "created_at": "2026-05-04T09:07:28Z",
+            "updated_at": "2026-05-04T09:07:28Z"
+        }"#;
+        let acct: Account = serde_json::from_str(json).expect("deserialise post-rework shape");
+        assert_eq!(
+            acct.balance,
+            Decimal::from_str("770000").expect("valid decimal literal")
+        );
+        assert_eq!(acct.balance_cents, Some(77_000_000));
+        assert_eq!(acct.status.as_deref(), Some("active"));
+        assert_eq!(acct.notes, None);
+        assert_eq!(acct.is_active, None);
+    }
+
+    /// Pre-rework deployments still send `notes`/`is_active` and omit the
+    /// new minor-unit / status fields. Optional fields with serde default
+    /// must accept this shape under strict mode.
+    #[test]
+    fn deserializes_pre_rework_account_shape() {
+        let json = r#"{
+            "id": "76204ffb-5b35-4b04-a74e-dafbab011d93",
+            "name": "The Jam",
+            "balance": "NZ$32,551.54",
+            "currency": "NZD",
+            "classification": "liability",
+            "account_type": "credit_card",
+            "subtype": "credit_card",
+            "institution_name": "ASB",
+            "institution_domain": "https://www.asb.co.nz/",
+            "notes": null,
+            "is_active": true,
+            "created_at": "2026-05-04T20:33:48Z",
+            "updated_at": "2026-05-04T20:33:48Z"
+        }"#;
+        let acct: Account = serde_json::from_str(json).expect("deserialise pre-rework shape");
+        assert_eq!(
+            acct.balance,
+            Decimal::from_str("32551.54").expect("valid decimal literal")
+        );
+        assert_eq!(acct.balance_cents, None);
+        assert_eq!(acct.cash_balance, None);
+        assert_eq!(acct.status, None);
+        assert_eq!(acct.is_active, Some(true));
+        assert_eq!(acct.notes, None);
     }
 }

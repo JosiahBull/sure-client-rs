@@ -69,6 +69,26 @@ pub mod duration_from_secs {
     }
 }
 
+/// Option-aware variant of [`deserialize_flexible_decimal`].
+///
+/// Uses [`deserialize_flexible_decimal`] when the field is present and
+/// non-null; returns `None` when the field is absent or `null`. Pair with
+/// `#[serde(default, deserialize_with = "deserialize_flexible_decimal_opt")]`
+/// on `Option<Decimal>` fields.
+pub fn deserialize_flexible_decimal_opt<'de, D>(
+    deserializer: D,
+) -> Result<Option<Decimal>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    struct Wrapper(#[serde(deserialize_with = "deserialize_flexible_decimal")] Decimal);
+
+    Ok(Option::<Wrapper>::deserialize(deserializer)?.map(|Wrapper(d)| d))
+}
+
 /// Deserialize a `Decimal` from a string, number, or null.
 ///
 /// This function is designed to be robust and can handle various formats:

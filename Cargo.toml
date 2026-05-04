@@ -1,6 +1,6 @@
 [package]
 name = "sure-client-rs"
-version = "0.4.1"
+version = "0.4.2"
 edition = "2024"
 authors = ["Josiah Bull <josiah.bull7@gmail.com>"]
 description = "A non-official Rust client library for the Akahu API, providing access to financial data aggregation services in New Zealand"
