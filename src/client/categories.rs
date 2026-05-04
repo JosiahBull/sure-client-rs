@@ -4,7 +4,7 @@ use reqwest::Method;
 use crate::ApiError;
 use crate::error::ApiResult;
 use crate::models::category::{
-    CategoryCollection, CategoryDetail, Classification, CreateCategoryData, CreateCategoryRequest,
+    CategoryCollection, CategoryDetail, CreateCategoryData, CreateCategoryRequest,
     UpdateCategoryData, UpdateCategoryRequest,
 };
 use crate::models::{DeleteResponse, PaginatedResponse};
@@ -19,13 +19,12 @@ const MAX_PER_PAGE: u32 = 100;
 impl SureClient {
     /// List categories with optional filters
     ///
-    /// Retrieves a paginated list of categories. Results can be filtered by classification,
-    /// parent category, or limited to root categories only.
+    /// Retrieves a paginated list of categories. Results can be filtered by parent
+    /// category, or limited to root categories only.
     ///
     /// # Arguments
     /// * `page` - Page number (default: 1)
     /// * `per_page` - Items per page (default: 25, max: 100)
-    /// * `classification` - Filter by classification (income or expense)
     /// * `roots_only` - Return only root categories (default: false)
     /// * `parent_id` - Filter by parent category ID
     ///
@@ -41,7 +40,6 @@ impl SureClient {
         #[builder(default = 1)] page: u32,
         #[builder(default = 25)] per_page: u32,
         #[builder(default = false)] roots_only: bool,
-        classification: Option<Classification>,
         parent_id: Option<&CategoryId>,
     ) -> ApiResult<PaginatedResponse<CategoryCollection>> {
         let mut query_params = HashMap::new();
@@ -55,10 +53,6 @@ impl SureClient {
         query_params.insert("page", page.to_string());
         query_params.insert("per_page", per_page.to_string());
         query_params.insert("roots_only", roots_only.to_string());
-
-        if let Some(classification) = classification {
-            query_params.insert("classification", classification.to_string());
-        }
 
         if let Some(parent_id) = parent_id {
             query_params.insert("parent_id", parent_id.to_string());
@@ -113,13 +107,11 @@ impl SureClient {
     ///
     /// # Example
     /// ```no_run
-    /// use sure_client_rs::{SureClient, BearerToken};
-    /// use sure_client_rs::models::category::Classification;
+    /// use sure_client_rs::SureClient;
     ///
     /// # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
     /// let category = client.create_category()
     ///     .name("Groceries".to_string())
-    ///     .classification(Classification::Expense)
     ///     .color("#FF5733".to_string())
     ///     .lucide_icon("shopping-cart".to_string())
     ///     .call()
@@ -133,7 +125,6 @@ impl SureClient {
     pub async fn create_category(
         &self,
         name: String,
-        classification: Classification,
         color: String,
         lucide_icon: Option<String>,
         parent_id: Option<CategoryId>,
@@ -141,7 +132,6 @@ impl SureClient {
         let request = CreateCategoryRequest {
             category: CreateCategoryData {
                 name,
-                classification,
                 color,
                 lucide_icon,
                 parent_id,
@@ -199,7 +189,6 @@ impl SureClient {
         &self,
         id: &CategoryId,
         name: Option<String>,
-        classification: Option<Classification>,
         color: Option<String>,
         lucide_icon: Option<String>,
         parent_id: Option<CategoryId>,
@@ -207,7 +196,6 @@ impl SureClient {
         let request = UpdateCategoryRequest {
             category: UpdateCategoryData {
                 name,
-                classification,
                 color,
                 lucide_icon,
                 parent_id,

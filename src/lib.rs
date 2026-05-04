@@ -30,7 +30,7 @@
 //!     // List all categories
 //!     let categories = client.get_categories().call().await?;
 //!     for category in categories.items.categories {
-//!         println!("{}: {}", category.name, category.classification);
+//!         println!("{}: {}", category.name, category.color);
 //!     }
 //!
 //!     // List recent transactions
@@ -67,7 +67,7 @@
 //!
 //!     let categories = client.get_categories().call().await?;
 //!     for category in categories.items.categories {
-//!         println!("{}: {}", category.name, category.classification);
+//!         println!("{}: {}", category.name, category.color);
 //!     }
 //!
 //!     Ok(())
@@ -104,15 +104,13 @@
 //!
 //! ```no_run
 //! use sure_client_rs::{SureClient, BearerToken, CategoryId};
-//! use sure_client_rs::models::category::Classification;
 //! use uuid::Uuid;
 //!
 //! # async fn example(client: SureClient) -> Result<(), Box<dyn std::error::Error>> {
-//! // Get expense categories
+//! // List the first page of categories
 //! let categories = client.get_categories()
 //!     .page(1)
 //!     .per_page(25)
-//!     .classification(Classification::Expense)
 //!     .call()
 //!     .await?;
 //!

@@ -84,7 +84,10 @@ impl TryFrom<&str> for AccountKind {
     }
 }
 
-/// Account information
+/// Account information.
+///
+/// Sure renders both list and detail responses through the same `_account`
+/// partial, so this struct covers both shapes.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
 pub struct Account {
@@ -92,29 +95,17 @@ pub struct Account {
     pub id: AccountId,
     /// Account name
     pub name: String,
-    /// Unformatted balance
+    /// Unformatted balance, parsed from Sure's currency-formatted string
+    /// (e.g. `"NZ$770,000.00"`).
     #[serde(deserialize_with = "deserialize_flexible_decimal")]
     pub balance: Decimal,
-    /// Currency code (e.g. "USD")
-    pub currency: iso_currency::Currency,
-    /// Account classification (e.g. "asset", "liability")
-    pub classification: String,
-    /// Account kind
-    #[serde(rename = "account_type")]
-    pub kind: AccountKind,
-}
-
-/// Detailed account information
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict", serde(deny_unknown_fields))]
-pub struct AccountDetail {
-    /// Unique identifier
-    pub id: AccountId,
-    /// Account name
-    pub name: String,
-    /// Unformatted balance
+    /// Balance in the currency's minor unit (e.g. cents).
+    pub balance_cents: i64,
+    /// Unformatted cash balance, parsed from Sure's currency-formatted string.
     #[serde(deserialize_with = "deserialize_flexible_decimal")]
-    pub balance: Decimal,
+    pub cash_balance: Decimal,
+    /// Cash balance in the currency's minor unit.
+    pub cash_balance_cents: i64,
     /// Currency code (e.g. "USD")
     pub currency: iso_currency::Currency,
     /// Account classification (e.g. "asset", "liability")
@@ -125,22 +116,26 @@ pub struct AccountDetail {
     /// Account subtype (e.g. "checking", "savings")
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub subtype: Option<String>,
+    /// Account status (e.g. "active", "disabled", "draft")
+    pub status: String,
     /// Name of the financial institution
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub institution_name: Option<String>,
     /// Domain of the financial institution
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub institution_domain: Option<String>,
-    /// Additional notes about the account
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub notes: Option<String>,
-    /// Whether the account is active
-    pub is_active: bool,
     /// Creation timestamp
     pub created_at: DateTime<Utc>,
     /// Last update timestamp
     pub updated_at: DateTime<Utc>,
 }
+
+/// Detailed account information.
+///
+/// Currently identical in shape to [`Account`] — Sure renders both list and
+/// detail responses through the same partial. Kept as a separate alias so
+/// existing call-sites that ask for `AccountDetail` continue to compile.
+pub type AccountDetail = Account;
 
 /// Collection of accounts
 #[derive(Debug, Clone, Serialize, Deserialize)]

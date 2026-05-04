@@ -70,8 +70,6 @@ pub struct Category {
     pub id: CategoryId,
     /// Category name
     pub name: String,
-    /// Classification (income or expense)
-    pub classification: String,
     /// Color for UI display (hex code)
     pub color: String,
     /// Icon identifier
@@ -96,8 +94,6 @@ pub struct CategoryDetail {
     pub id: CategoryId,
     /// Category name
     pub name: String,
-    /// Classification (income or expense)
-    pub classification: Classification,
     /// Color for UI display (hex code)
     pub color: String,
     /// Icon identifier
@@ -135,8 +131,6 @@ pub(crate) struct CreateCategoryRequest {
 pub(crate) struct CreateCategoryData {
     /// Category name
     pub name: String,
-    /// Classification (income or expense)
-    pub classification: Classification,
     /// Color for UI display (hex code)
     pub color: String,
     /// Lucide icon name
@@ -162,9 +156,6 @@ pub(crate) struct UpdateCategoryData {
     /// Category name
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    /// Classification (income or expense)
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub classification: Option<Classification>,
     /// Color for UI display (hex code)
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub color: Option<String>,

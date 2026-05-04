@@ -32,8 +32,6 @@ pub struct Category {
     pub id: CategoryId,
     /// Category name
     pub name: String,
-    /// Classification (income or expense)
-    pub classification: String,
     /// Color for UI display (hex code)
     pub color: String,
     /// Icon identifier
@@ -208,9 +206,13 @@ pub struct Transaction {
     /// Transaction date
     #[serde(with = "crate::serde::naive_date")]
     pub date: DateTime<Utc>,
-    /// Transaction amount
-    // #[serde(with = "rust_decimal::serde::arbitrary_precision")]
+    /// Transaction amount, formatted by the server (e.g. "NZ$25.00").
     pub amount: String,
+    /// Absolute transaction amount in the currency's minor unit (always positive).
+    pub amount_cents: i64,
+    /// Signed transaction amount in the currency's minor unit. Positive for income,
+    /// negative for expenses.
+    pub signed_amount_cents: i64,
     /// Currency code (e.g., "USD", "EUR")
     pub currency: iso_currency::Currency,
     /// Transaction name/description

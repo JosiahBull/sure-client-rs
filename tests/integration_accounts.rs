@@ -58,7 +58,7 @@ async fn test_account_crud_lifecycle() {
     assert_eq!(created.name, format!("Test Account {}", timestamp));
     assert_eq!(created.currency, iso_currency::Currency::NZD);
     // Note: subtype may not be returned by the API
-    assert!(created.is_active);
+    assert_eq!(created.status, "active");
     println!("✓ Created account: {} (ID: {})", created.name, created.id);
 
     // Get the account by ID
@@ -82,10 +82,8 @@ async fn test_account_crud_lifecycle() {
         .expect("Failed to update account");
 
     assert_eq!(updated.name, format!("Updated Test Account {}", timestamp));
-    assert_eq!(
-        updated.notes,
-        Some("Updated during integration test".to_string())
-    );
+    // The new API response shape no longer surfaces the `notes` field, so we
+    // can only verify the name change came through here.
     println!("✓ Updated account: {}", updated.name);
 
     // List accounts and verify our account is in the list
