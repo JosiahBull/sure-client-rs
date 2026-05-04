@@ -36,6 +36,11 @@ pub struct Category {
     pub color: String,
     /// Icon identifier
     pub icon: String,
+    /// Legacy classification ("income" / "expense"). Optional — older Sure
+    /// deployments still render it on transaction.category; newer ones omit
+    /// it. See [`crate::models::category::CategoryDetail::classification`].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub classification: Option<String>,
 }
 
 /// Merchant information
